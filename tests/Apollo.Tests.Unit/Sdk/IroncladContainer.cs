@@ -79,5 +79,7 @@ namespace Apollo.Tests.Unit.Sdk
                 TimeBetweenWaitUntilAvailableAttempts = TimeSpan.FromSeconds(1)
             };
         }
+        
+        
     }
 }

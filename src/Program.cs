@@ -10,7 +10,9 @@ namespace Apollo
         static async Task Main(string[] args)
         {
             await WebHost.CreateDefaultBuilder<Startup>(args)
+                .UseUrls("http://+:5006")
                 .Build()
+                
                 .RunAsync();
         }
     }

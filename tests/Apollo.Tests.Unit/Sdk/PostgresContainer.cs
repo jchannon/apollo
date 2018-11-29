@@ -18,7 +18,7 @@ namespace Apollo.Tests.Unit.Sdk
             this.Configuration = new DockerContainerConfiguration
             {
                 Image = "postgres",
-                Tag = "latest",
+                Tag = "10.1-alpine",
                 AutoRemoveContainerOnInitialization = true,
                 AutoRemoveContainerOnDispose = true,
                 ContainerName = "apollo_tests_postgres",
