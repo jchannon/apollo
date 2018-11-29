@@ -1,12 +1,11 @@
 //// Copyright (c) Lykke Corp.
 //// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Net.Http;
-using Npgsql;
-
 namespace Apollo.Tests.Unit.Sdk
 {
+    using System;
+    using System.Net.Http;
+    
     public class MailHogContainer : DockerContainer
     {
         public MailHogContainer(Uri smtpEndpoint, Uri httpEndpoint)
@@ -15,10 +14,11 @@ namespace Apollo.Tests.Unit.Sdk
             {
                 Image = "mailhog/mailhog",
                 Tag = "latest",
-                AutoRemoveContainer = true,
+                AutoRemoveContainerOnInitialization = true,
+                AutoRemoveContainerOnDispose = true,
                 ContainerName = "apollo_tests_mailhog",
                 ContainerEnvironmentVariables = new string[0],
-                ContainerPortBindings = new []
+                ContainerPortBindings = new[]
                 {
                     new DockerContainerPortBinding
                     {
@@ -40,7 +40,10 @@ namespace Apollo.Tests.Unit.Sdk
                             var requestUri = new UriBuilder(httpEndpoint) {Path = "/api/v1/messages"}.Uri;
                             using (var response = await client.GetAsync(requestUri, token))
                             {
-                                if (response.IsSuccessStatusCode) return true;
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    return true;
+                                }
                             }
                         }
 
@@ -48,7 +51,7 @@ namespace Apollo.Tests.Unit.Sdk
                     }
                     catch
                     {
-                        
+                        // ignored
                     }
 
                     return false;

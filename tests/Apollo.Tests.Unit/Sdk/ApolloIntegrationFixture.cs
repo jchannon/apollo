@@ -1,16 +1,15 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Net.Sockets;
-
 namespace Apollo.Tests.Unit.Sdk
 {
     using System;
     using System.Net;
+    using System.Net.Sockets;
     using System.Threading.Tasks;
     using Npgsql;
     using Xunit;
-    
+
     public class ApolloIntegrationFixture : IAsyncLifetime
     {
         private readonly PostgresContainer postgresContainer;
@@ -24,12 +23,10 @@ namespace Apollo.Tests.Unit.Sdk
             this.SmtpServerHttpEndpoint = new Uri($"http://localhost:{PortManager.GetNextPort()}");
             var registryCredentials = new NetworkCredential(
                 Environment.GetEnvironmentVariable("DOCKER_USERNAME"), 
-                Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
-            );
+                Environment.GetEnvironmentVariable("DOCKER_PASSWORD"));
             var googleCredentials = new NetworkCredential(
                 Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"), 
-                Environment.GetEnvironmentVariable("GOOGLE_SECRET")
-            );
+                Environment.GetEnvironmentVariable("GOOGLE_SECRET"));
             //var endpoint = new Uri($"http://localhost:{PortManager.GetNextPort()}");
             var endpoint = new Uri("http://localhost:5005");
             var connectionStringBuilder = new NpgsqlConnectionStringBuilder($"Host={ResolveHost()};Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}");
@@ -40,6 +37,7 @@ namespace Apollo.Tests.Unit.Sdk
         }
         
         public Uri SmtpServerEndpoint { get; }
+
         public Uri SmtpServerHttpEndpoint { get; }
         
         // TODO: Expose all the relevant properties such that tests can connect to the various services 

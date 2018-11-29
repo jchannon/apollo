@@ -1,11 +1,11 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.WindowsAzure.Storage;
-
 namespace Apollo.Tests.Unit.Sdk
 {
+    using System;
+    using Microsoft.WindowsAzure.Storage;
+    
     public class AzureStorageEmulatorContainer : DockerContainer
     {
         public AzureStorageEmulatorContainer()
@@ -29,10 +29,11 @@ namespace Apollo.Tests.Unit.Sdk
                 //REMARK: the microsoft docker image is windows based which does not run on linux
                 Image = "arafato/azurite",
                 Tag = "latest",
-                AutoRemoveContainer = true,
+                AutoRemoveContainerOnInitialization = true,
+                AutoRemoveContainerOnDispose = true,
                 ContainerName = "apollo_tests_azure",
                 ContainerEnvironmentVariables = new string[0],
-                ContainerPortBindings = new []
+                ContainerPortBindings = new[]
                 {
                     new DockerContainerPortBinding
                     {
@@ -60,6 +61,7 @@ namespace Apollo.Tests.Unit.Sdk
                     }
                     catch
                     {
+                        // ignored
                     }
 
                     return false;

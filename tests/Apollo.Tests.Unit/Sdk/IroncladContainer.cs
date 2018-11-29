@@ -1,23 +1,31 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Net;
-using System.Net.Http;
-using Npgsql;
-
 namespace Apollo.Tests.Unit.Sdk
 {
+    using System;
+    using System.Net;
+    using System.Net.Http;
+    using Npgsql;
+    
     public class IroncladContainer : DockerContainer
     {
         public IroncladContainer(Uri endpoint, NpgsqlConnectionStringBuilder connectionStringBuilder, NetworkCredential registryCredentials, NetworkCredential googleCredentials)
         {
-            if (endpoint == null) 
+            if (endpoint == null)
+            {
                 throw new ArgumentNullException(nameof(endpoint));
-            if (connectionStringBuilder == null) 
+            }
+
+            if (connectionStringBuilder == null)
+            {
                 throw new ArgumentNullException(nameof(connectionStringBuilder));
-            if (registryCredentials == null) 
+            }
+
+            if (registryCredentials == null)
+            {
                 throw new ArgumentNullException(nameof(registryCredentials));
+            }
 
             var endpointBuilder = new UriBuilder(endpoint);
             endpointBuilder.Path = endpointBuilder.Path.EndsWith("/")
@@ -30,7 +38,8 @@ namespace Apollo.Tests.Unit.Sdk
                 RegistryCredentials = registryCredentials,
                 Image = "ironclad",
                 Tag = "latest",
-                AutoRemoveContainer = true,
+                AutoRemoveContainerOnInitialization = true,
+                AutoRemoveContainerOnDispose = true,
                 ContainerName = "apollo_tests_ironclad",
                 ContainerEnvironmentVariables = new[]
                 {

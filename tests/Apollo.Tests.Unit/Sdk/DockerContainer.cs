@@ -1,18 +1,18 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Docker.DotNet;
-using Docker.DotNet.Models;
-using Xunit;
-
 namespace Apollo.Tests.Unit.Sdk
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Docker.DotNet;
+    using Docker.DotNet.Models;
+    using Xunit;
+    
     // ReSharper disable once CA1001
     public abstract class DockerContainer : IAsyncLifetime
     {
@@ -107,36 +107,37 @@ namespace Apollo.Tests.Unit.Sdk
             {
                 throw new InvalidOperationException("Please provide the Configuration before initializing the fixture.");
             }
-
-            if (this.Configuration.IsContainerReusable)
+            
+            await this.AutoCreateImage(default).ConfigureAwait(false);
+            if (this.Configuration.AutoRemoveContainerOnInitialization)
             {
                 var id = await this.TryFindContainer(default).ConfigureAwait(false);
-                if (id == null)
+                if (id != null)
                 {
-                    await this.AutoCreateImage(default).ConfigureAwait(false);
-                    id = await this.CreateContainer(default).ConfigureAwait(false);
+                    await this.StopContainer(id, default).ConfigureAwait(false);
+                    if (this.configuration.AutoRemoveContainerOnDispose)
+                    {
+                        await this.RemoveContainer(id, default).ConfigureAwait(false);
+                    }
                 }
-
-                await this.StartContainer(id, default).ConfigureAwait(false);
             }
-            else
-            {
-                await this.AutoCreateImage(default).ConfigureAwait(false);
-                await this.AutoStartContainer(default).ConfigureAwait(false);
-            }
+            await this.AutoStartContainer(default).ConfigureAwait(false);
         }
 
         public async Task DisposeAsync()
         {
             if (this.client != null && this.Configuration != null)
             {
-                var id = await this.TryFindContainer(default).ConfigureAwait(false);
-                if (id != null)
+                if (this.Configuration.AutoRemoveContainerOnDispose)
                 {
-                    await this.StopContainer(id, default).ConfigureAwait(false);
-                    if (this.configuration.AutoRemoveContainer)
+                    var id = await this.TryFindContainer(default).ConfigureAwait(false);
+                    if (id != null)
                     {
-                        await this.RemoveContainer(id, default).ConfigureAwait(false);
+                        await this.StopContainer(id, default).ConfigureAwait(false);
+                        if (this.configuration.AutoRemoveContainerOnDispose)
+                        {
+                            await this.RemoveContainer(id, default).ConfigureAwait(false);
+                        }
                     }
                 }
             }

@@ -1,8 +1,6 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
-
 #pragma warning disable CA1819
 
 namespace Apollo.Tests.Unit.Sdk
@@ -34,11 +32,11 @@ namespace Apollo.Tests.Unit.Sdk
             : this.TagQualifiedImage;
 
         // Container related
-        public bool IsContainerReusable { get; set; }
-
         public string ContainerName { get; set; }
 
-        public bool AutoRemoveContainer { get; set; }
+        public bool AutoRemoveContainerOnInitialization { get; set; }
+        
+        public bool AutoRemoveContainerOnDispose { get; set; }
 
         public DockerContainerPortBinding[] ContainerPortBindings { get; set; } = Array.Empty<DockerContainerPortBinding>();
 
