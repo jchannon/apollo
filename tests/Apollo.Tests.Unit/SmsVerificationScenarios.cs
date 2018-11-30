@@ -134,7 +134,7 @@ namespace Apollo.Tests.Unit
                     BaseAddress = services.IdentityAuthority
                 };
 
-                this.apolloClient = new HttpClient()
+                this.apolloClient = new HttpClient
                 {
                     BaseAddress = services.ApolloEndpoint
                 };
@@ -223,16 +223,6 @@ namespace Apollo.Tests.Unit
                 var smsResponse = await this.apolloClient.PostAsync("/phone-verification", null);
                 smsResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             }
-        }
-
-        class User
-        {
-            public string Username { get; set; }
-            public string Password { get; set; }
-            public string Email { get; set; }
-            public bool EmailConfirmed { get; set; }
-            public string PhoneNumber { get; set; }
-            public bool PhoneNumberConfirmed { get; set; }
         }
     }
 }
