@@ -71,7 +71,7 @@ namespace Apollo.Tests.Unit.Sdk
 
         private static string ResolveHost()
         {
-            if (Environment.OSVersion.Platform.Equals(PlatformID.Unix))
+            if (Environment.OSVersion.Platform.Equals(PlatformID.Unix) && !Environment.OSVersion.Platform.Equals(PlatformID.MacOSX))
             {
                 return Environment.MachineName;
             }
