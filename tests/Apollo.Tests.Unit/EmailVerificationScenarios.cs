@@ -1,13 +1,16 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Net;
+using System.Net.Http;
+using FluentAssertions;
 using Xbehave;
 
 namespace Apollo.Tests.Unit
 {
     using System.Threading.Tasks;
     using Sdk;
-    using Ironclad.Tests.Sdk;
     using Xunit;
 
     [Collection(nameof(ApolloIntegrationCollection))]
@@ -23,7 +26,7 @@ namespace Apollo.Tests.Unit
         [Scenario]
         public void Verifying_an_email_address(string code)
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
             "And I can login as the user".x(async () => { await this.driver.Login(); });
 
@@ -33,42 +36,42 @@ namespace Apollo.Tests.Unit
 
             "And I submit the confirmation code to be verified".x(async () => { await this.driver.SubmitVerificationCode(code); });
 
-            "Then my email verification status is true in Ironclad".x(() => { await this.driver.WaitForEmailToBeVerified();});
+            "Then my email verification status is true in Ironclad".x(async () => { await this.driver.WaitForEmailToBeVerified(); });
         }
-        
+
         [Scenario]
-        public Task Providing_incorrect_code_three_times()
+        public void Providing_incorrect_code_three_times(string invalidCode)
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
-            "I can login as the user".x(async () => { await this.driver.Login(); });//
-//            await this.driver.SendRequestToVerifyEmailAddress();
-//
-//            var code = await this.driver.WaitForEmailWithCode();
-//
-//            var invalidCode = VerificationCode.Generate().ToString();
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
+            "And I can login as the user".x(async () => { await this.driver.Login(); }); //
 
-            return Task.CompletedTask;
+            "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
+
+            "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
+
+            "And I submit the invalid confirmation code to be verified".x(async () => { await this.driver.SubmitVerificationCode(invalidCode); });
+            
+            //todo check the response and send it some more times.
+//
+//            await this.driver.SendEmailConfirmationCode(invalidCode);
+//
+//            await this.driver.SendEmailConfirmationCode(invalidCode);
         }
-        
-        [Scenario]
-        public Task Providing_correct_code_after_three_incorrect_attempts()
-        {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
-            "I can login as the user".x(async () => { await this.driver.Login(); });//
-//            await this.driver.SendRequestToVerifyEmailAddress();
-//
-//            var code = await this.driver.WaitForEmailWithCode();
-//
-//            var invalidCode = VerificationCode.Generate().ToString();
-//
+        [Scenario]
+        public void Providing_correct_code_after_three_incorrect_attempts(string code, string invalidCode)
+        {
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
+
+            "And I wait for the email confirmation code".x(async () => { code = await this.driver.WaitForEmailWithConfirmationCode(); });
+
+            "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
+
 //            await this.driver.SendEmailConfirmationCode(invalidCode);
 //
 //            await this.driver.SendEmailConfirmationCode(invalidCode);
@@ -76,71 +79,64 @@ namespace Apollo.Tests.Unit
 //            await this.driver.SendEmailConfirmationCode(invalidCode);
 //
 //            await this.driver.SendEmailConfirmationCode(code);
-
-            return Task.CompletedTask;
-        }
-        
-        [Scenario]
-        public Task Providing_incorrect_code_four_times()
-        {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
-
-            "I can login as the user".x(async () => { await this.driver.Login(); });//
-//            await this.driver.SendRequestToVerifyEmailAddress();
-//
-//            var code = await this.driver.WaitForEmailWithCode();
-//
-//            var invalidCode = VerificationCode.Generate().ToString();
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-
-            return Task.CompletedTask;
         }
 
         [Scenario]
-        public Task Veryifying_email_without_verified_phone_number()
+        public void Providing_incorrect_code_four_times(string invalidCode)
         {
-//            await this.driver.RegisterUserWithUnverifiedPhoneNumber();
-//
-//            await this.driver.LoginAsUser();
-//
-//            await this.driver.SendRequestToVerifyEmailAddress();
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
-            return Task.CompletedTask;
-        }
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
 
-        [Scenario]
-        public Task Verifying_email_without_requesting_a_code()
-        {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+            "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
 
-            "I can login as the user".x(async () => { await this.driver.Login(); });
-//            var invalidCode = VerificationCode.Generate().ToString();
+            "And I wait for the email confirmation code".x(async () => { await this.driver.WaitForEmailWithConfirmationCode(); });
+
+            "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
+
 //
 //            await this.driver.SendEmailConfirmationCode(invalidCode);
-
-            return Task.CompletedTask;
+//
+//            await this.driver.SendEmailConfirmationCode(invalidCode);
+//
+//            await this.driver.SendEmailConfirmationCode(invalidCode);
+//
+//            await this.driver.SendEmailConfirmationCode(invalidCode);
         }
 
         [Scenario]
-        public Task Providing_incorrect_code_three_times_and_then_succeeding_with_new_code()
+        public void Verifying_email_without_requesting_a_code(string invalidCode, HttpResponseMessage responseMessage)
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
-            "I can login as the user".x(async () => { await this.driver.Login(); });
-//
-//            await this.driver.SendRequestToVerifyEmailAddress();
-//
-//            var oldCode = await this.driver.WaitForEmailWithCode();
-//
-//            var invalidCode = VerificationCode.Generate().ToString();
-//
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+            
+            "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
+
+            "When I submit the confirmation code to be verified".x(async () => { await this.driver.SubmitVerificationCode(invalidCode); });
+
+            "Then the code is rejected".x(() =>
+            {
+                responseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+                //todo assert body contains correct problem+json info
+            });
+
+            "And the email is not verified".x(async () => { });
+        }
+
+        [Scenario]
+        public void Providing_incorrect_code_three_times_and_then_succeeding_with_new_code(string oldCode, string invalidCode, string newCode)
+        {
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
+            
+            "And I wait for the email confirmation code".x(async () => { oldCode = await this.driver.WaitForEmailWithConfirmationCode(); });
+
+            "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
+
 //            await this.driver.SendEmailConfirmationCode(invalidCode);
 //
 //            await this.driver.SendEmailConfirmationCode(invalidCode);
@@ -154,22 +150,20 @@ namespace Apollo.Tests.Unit
 //            await this.driver.SendEmailConfirmationCode(newCode);
 //
 //            await this.driver.WaitForEmailVerifiedToBeSetInIronclad();
-
-            return Task.CompletedTask;
         }
-        
-        [Scenario]
-        public Task Providing_incorrect_code_three_times_and_request_new_code_and_try_with_old_code()
-        {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
-            "I can login as the user".x(async () => { await this.driver.Login(); });
-//
-//            await this.driver.SendRequestToVerifyEmailAddress();
-//
-//            var oldCode = await this.driver.WaitForEmailWithCode();
-//
-//            var invalidCode = VerificationCode.Generate().ToString();
+        [Scenario]
+        public void Providing_incorrect_code_three_times_and_request_new_code_and_try_with_old_code(string oldCode, string invalidCode)
+        {
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
+            
+            "And I wait for the email confirmation code".x(async () => { oldCode = await this.driver.WaitForEmailWithConfirmationCode(); });
+
+            "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
 //
 //            await this.driver.SendEmailConfirmationCode(invalidCode);
 //
@@ -182,20 +176,21 @@ namespace Apollo.Tests.Unit
 //            var newCode = await this.driver.WaitForEmailWithCode();
 //
 //            await this.driver.SendEmailConfirmationCode(oldCode);
-
-            return Task.CompletedTask;
         }
 
         [Scenario]
-        public Task Verifying_an_already_verified_email()
+        public void Verifying_an_already_verified_email()
         {
-//            await this.driver.RegisterUserWithVerifiedEmail();
-//
-//            await this.driver.LoginAsUser();
-//
-//            await this.driver.SendRequestToVerifyEmailAddress();
-            
-            return Task.CompletedTask;
+            "Given I have a user with a verified email".x(async () => { await this.driver.RegisterUser(emailVerified: true); });
+
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
+
+            "Then the request is rejected".x(() =>
+            {
+                throw new NotImplementedException();
+            });
         }
     }
 }

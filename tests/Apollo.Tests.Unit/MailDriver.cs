@@ -1,6 +1,8 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System.Text;
+
 namespace Apollo.Tests.Unit
 {
     using System;
@@ -31,7 +33,9 @@ namespace Apollo.Tests.Unit
 
         public async Task SendRequestToVerifyEmailAddress()
         {
-            await Task.Yield();
+            var response = await this.ApolloClient.PostAsync("/email-verification-request", null);
+
+            response.EnsureSuccessStatusCode();
         }
         
         public async Task<string> WaitForEmailWithConfirmationCode()
@@ -178,9 +182,14 @@ namespace Apollo.Tests.Unit
             }
         }
 
-        public async Task SubmitVerificationCode(string code)
+        public async Task<HttpResponseMessage> SubmitVerificationCode(string code)
         {
-            await Task.Yield();
+            var request = new
+            {
+                code
+            };
+
+            return await this.ApolloClient.PostAsJsonAsync("/email-confirmation-request", request);
         }
 
         public async Task WaitForEmailToBeVerified()
