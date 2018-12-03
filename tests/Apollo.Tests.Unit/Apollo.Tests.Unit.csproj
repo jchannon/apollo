@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Apollo.csproj" />
     <ProjectReference Include="..\Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
