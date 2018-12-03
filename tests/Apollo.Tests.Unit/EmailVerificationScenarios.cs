@@ -11,11 +11,11 @@ namespace Apollo.Tests.Unit
     [Collection(nameof(ApolloIntegrationCollection))]
     public class EmailVerificationScenarios
     {
-        private readonly Driver driver;
+        private readonly MailDriver driver;
 
-        public EmailVerificationScenarios(ApolloIntegrationFixture services, AuthenticationFixture authentication)
+        public EmailVerificationScenarios(ApolloIntegrationFixture services)
         {
-            this.driver = new Driver(services, authentication);
+            this.driver = new MailDriver(services);
         }
 
         [Fact]

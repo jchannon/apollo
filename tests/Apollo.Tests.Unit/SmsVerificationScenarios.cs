@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -119,65 +119,16 @@ namespace Apollo.Tests.Unit
             return Task.CompletedTask;
         }
 
-        private class Driver
+        private class Driver : IdentityTestDriver
         {
             private readonly ApolloIntegrationFixture services;
             private readonly HttpClient ironcladClient;
             private User currentUser;
             private string accessToken;
 
-            public Driver(ApolloIntegrationFixture services)
+            public Driver(ApolloIntegrationFixture services) : base(services)
             {
-                this.services = services ?? throw new ArgumentNullException(nameof(services));
-
-                this.ironcladClient = new HttpClient(services.IdentityAuthorityAdminHandler)
-                {
-                    BaseAddress = services.IdentityAuthority
-                };
             }
-
-            public async Task RegisterUser()
-            {
-                currentUser = new User
-                {
-                    Username = Guid.NewGuid().ToString("N"),
-                    Password = Guid.NewGuid().ToString("N"),
-                    Email = $"{Guid.NewGuid():N}@example.com",
-                    PhoneNumber = "123456789",
-                    EmailConfirmed = true,
-                    PhoneNumberConfirmed = false
-                };
-
-                var response = await this.ironcladClient.PostAsync("/api/users",
-                    new StringContent(JsonConvert.SerializeObject(currentUser), Encoding.UTF8, "application/json"));
-
-                response.EnsureSuccessStatusCode();
-            }
-
-            public async Task Login()
-            {
-                var url = new RequestUrl(this.services.IdentityAuthority + "connect/authorize")
-                    .CreateAuthorizeUrl(ApolloIntegrationFixture.ApolloAuthClientId, "id_token token", $"openid profile {ApolloIntegrationFixture.ApolloAuthApiIdentifier}",
-                        $"{this.services.ApolloEndpoint}/redirect", "state", "nonce");
-
-                var automation = new BrowserAutomation("admin", "password");
-                await automation.NavigateToLoginAsync(url).ConfigureAwait(false);
-                var authorizeResponse = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync().ConfigureAwait(false);
-
-                // assert
-                authorizeResponse.IsError.Should().BeFalse();
-                accessToken = authorizeResponse.AccessToken;
-            }
-        }
-
-        class User
-        {
-            public string Username { get; set; }
-            public string Password { get; set; }
-            public string Email { get; set; }
-            public bool EmailConfirmed { get; set; }
-            public string PhoneNumber { get; set; }
-            public bool PhoneNumberConfirmed { get; set; }
         }
     }
 }

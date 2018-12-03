@@ -11,13 +11,13 @@ namespace Apollo.Tests.Unit
     using Xunit;
 
     [Collection(nameof(ApolloIntegrationCollection))]
-    public class DriverTests
+    public class MailDriverTests
     {
-        private readonly Driver driver;
+        private readonly MailDriver driver;
 
-        public DriverTests(ApolloIntegrationFixture services, AuthenticationFixture authentication)
+        public MailDriverTests(ApolloIntegrationFixture services)
         {
-            this.driver = new Driver(services, authentication);
+            this.driver = new MailDriver(services);
         }
 
         [Fact]

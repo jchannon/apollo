@@ -6,7 +6,7 @@ namespace Apollo.Tests.Unit
     using System;
     using Apollo.Domain;
     using Xunit;
-
+    
     public class VerificationCodeTests
     {
         [Theory]

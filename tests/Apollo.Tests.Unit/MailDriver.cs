@@ -15,12 +15,11 @@ namespace Apollo.Tests.Unit
     using Ironclad.Tests.Sdk;
     using Newtonsoft.Json;
     
-    public class Driver
+    public class MailDriver : IdentityTestDriver
     {
-        public Driver(ApolloIntegrationFixture services, AuthenticationFixture authentication)
+        public MailDriver(ApolloIntegrationFixture services) : base(services) 
         {
             this.Services = services ?? throw new ArgumentNullException(nameof(services));
-            this.Authentication = authentication ?? throw new ArgumentNullException(nameof(authentication));
             
             var internet = new Internet();
             this.FromEmailAddress = new MailAddress(internet.Email());
@@ -29,8 +28,6 @@ namespace Apollo.Tests.Unit
         
         public ApolloIntegrationFixture Services { get; }
         
-        public AuthenticationFixture Authentication { get; }
-
         public MailAddress FromEmailAddress { get; }
         
         //TODO: Perhaps this needs to be on our User object?
