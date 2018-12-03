@@ -5,12 +5,22 @@
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <PackageReference Include="Carter" Version="3.8.0" />
         <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
         <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
         <PackageReference Include="Microsoft.AspNetCore" Version="2.1.6" />
+        <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="appsettings.json" />
+        <Content Include="appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        </Content>
     </ItemGroup>
 
 </Project>
