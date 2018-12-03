@@ -23,16 +23,17 @@ namespace Apollo.Tests.Unit
             
             var internet = new Internet();
             this.FromEmailAddress = new MailAddress(internet.Email());
-            this.ToEmailAddress = new MailAddress(internet.Email());
         }
         
         public ApolloIntegrationFixture Services { get; }
         
         public MailAddress FromEmailAddress { get; }
-        
-        //TODO: Perhaps this needs to be on our User object?
-        public MailAddress ToEmailAddress { get; }
 
+        public async Task SendRequestToVerifyEmailAddress()
+        {
+            await Task.Yield();
+        }
+        
         public async Task<string> WaitForEmailWithConfirmationCode()
         {
             var timeBetweenReceiveAttempts = TimeSpan.FromMilliseconds(100);
@@ -50,7 +51,7 @@ namespace Apollo.Tests.Unit
                     var messages = await MailHogMessage.FromResponse(response.EnsureSuccessStatusCode());
                     
                     //TODO: Improve the predicate to match on more specific attributes. 
-                    message = messages.SingleOrDefault(m => m.To.Any(to => to.Equals(this.ToEmailAddress)));
+                    message = messages.SingleOrDefault(m => m.To.Any(to => to.Equals(new MailAddress(this.CurrentUser.Email))));
                     
                     if (message == null)
                     {
@@ -175,6 +176,16 @@ namespace Apollo.Tests.Unit
 
                 return message;
             }
+        }
+
+        public async Task SubmitVerificationCode(string code)
+        {
+            await Task.Yield();
+        }
+
+        public async Task WaitForEmailToBeVerified()
+        {
+            await Task.Yield();
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Apollo.Tests.Unit
             var lorem = new Lorem();
             var code = lorem.Letter(5);
             
-            using (var message = new MailMessage(this.driver.FromEmailAddress, this.driver.ToEmailAddress)
+            using (var message = new MailMessage(this.driver.FromEmailAddress, new MailAddress(this.driver.CurrentUser.Email))
             {
                 Body = code
             })

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -14,49 +14,49 @@ namespace Apollo.Tests.Unit
 {
     public abstract class IdentityTestDriver
     {
-        private readonly Internet internet;
-        private readonly PhoneNumbers phoneNumbers;
         private readonly HttpClient ironcladClient;
-        
+
         protected ApolloIntegrationFixture Services { get; }
         protected HttpClient ApolloClient { get; }
-        
+
+        public User CurrentUser { get; set; }
+
         protected IdentityTestDriver(ApolloIntegrationFixture services)
         {
             this.Services = services ?? throw new ArgumentNullException(nameof(services));
-            
+
             this.ironcladClient = new HttpClient(services.IdentityAuthorityAdminHandler)
             {
                 BaseAddress = services.IdentityAuthority
             };
-            
+
             this.ApolloClient = new HttpClient
             {
                 BaseAddress = services.ApolloEndpoint
             };
 
-            this.internet = new Internet();
-            this.phoneNumbers = new PhoneNumbers();
-        }
+            var internet = new Internet();
+            var phoneNumbers = new PhoneNumbers();
 
-        public async Task RegisterUser()
-        {
             var email = internet.Email();
-            
-            var currentUser = new User
+
+            CurrentUser = new User
             {
                 Username = email,
                 Password = internet.Password(),
                 Email = email,
-                PhoneNumber = this.phoneNumbers.PhoneNumber(),
+                PhoneNumber = phoneNumbers.PhoneNumber()
             };
+        }
 
+        public async Task RegisterUser()
+        {
             var response = await this.ironcladClient.PostAsync("/api/users",
-                new StringContent(JsonConvert.SerializeObject(currentUser), Encoding.UTF8, "application/json"));
+                new StringContent(JsonConvert.SerializeObject(CurrentUser), Encoding.UTF8, "application/json"));
 
             response.EnsureSuccessStatusCode();
         }
-        
+
         public async Task Login()
         {
             var url = new RequestUrl(this.Services.IdentityAuthority + "connect/authorize")

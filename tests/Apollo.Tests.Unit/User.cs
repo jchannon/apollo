@@ -1,6 +1,6 @@
-﻿namespace Apollo.Tests.Unit
+namespace Apollo.Tests.Unit
 {
-    class User
+    public class User
     {
         public string Username { get; set; }
         public string Password { get; set; }
