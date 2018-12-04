@@ -12,8 +12,11 @@ namespace Apollo.Tests.Unit.Sdk
     public class ApolloIntegrationFixture : IAsyncLifetime
     {
         private readonly AzureStorageEmulatorContainer azureStorageEmulatorContainer;
+
         private readonly MailHogContainer mailhogContainer;
+
         private readonly IroncladComponent ironcladComponent;
+
         private readonly IAsyncLifetime apolloInstance;
 
         public ApolloIntegrationFixture()
@@ -24,19 +27,20 @@ namespace Apollo.Tests.Unit.Sdk
             this.azureStorageEmulatorContainer = new AzureStorageEmulatorContainer();
             this.mailhogContainer = new MailHogContainer(this.SmtpServerEndpoint, this.SmtpServerHttpEndpoint);
             this.ironcladComponent = new IroncladComponent(ApolloAuthApiIdentifier, ApolloAuthClientId, ApolloEndpoint);
-           // this.apolloInstance = new BuiltFromSourceApollo(ApolloEndpoint);
+            // this.apolloInstance = new BuiltFromSourceApollo(ApolloEndpoint);
         }
 
         public Uri SmtpServerEndpoint { get; }
 
         public Uri SmtpServerHttpEndpoint { get; }
+
         public Uri IdentityAuthority => this.ironcladComponent.Endpoint;
 
         public Uri ApolloEndpoint => new Uri("http://localhost:5006/status");
 
         public const string ApolloAuthApiIdentifier = "apollo";
-        public const string ApolloAuthClientId = "apollo";
 
+        public const string ApolloAuthClientId = "apollo";
 
         public HttpMessageHandler IdentityAuthorityAdminHandler => this.ironcladComponent.Handler;
         // TODO: Expose all the relevant properties such that tests can connect to the various services 
@@ -49,12 +53,12 @@ namespace Apollo.Tests.Unit.Sdk
                 this.mailhogContainer.InitializeAsync()
             ).ConfigureAwait(false);
 
-           // await this.apolloInstance.InitializeAsync().ConfigureAwait(false);
+            // await this.apolloInstance.InitializeAsync().ConfigureAwait(false);
         }
 
         public async Task DisposeAsync()
         {
-           // await this.apolloInstance.DisposeAsync().ConfigureAwait(false);
+            // await this.apolloInstance.DisposeAsync().ConfigureAwait(false);
 
             await Task.WhenAll(
                 this.ironcladComponent.DisposeAsync(),

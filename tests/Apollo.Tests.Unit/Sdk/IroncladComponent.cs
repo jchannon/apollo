@@ -26,7 +26,7 @@ namespace Apollo.Tests.Unit.Sdk
 
         private readonly PostgresContainer postgresContainer;
 
-        private readonly IroncladContainer ironcladContainer;
+        private IroncladContainer ironcladContainer;
 
         private readonly AuthenticationFixture authenticationFixture;
 
@@ -36,19 +36,10 @@ namespace Apollo.Tests.Unit.Sdk
             this.clientId = clientId;
             this.apolloEndpoint = apolloEndpoint;
             var connectionStringBuilder =
-                new NpgsqlConnectionStringBuilder($"Host={ResolveHost()};Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}");
-
-            var registryCredentials = new NetworkCredential(
-                Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
-                Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
-            );
-            var googleCredentials = new NetworkCredential(
-                Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"),
-                Environment.GetEnvironmentVariable("GOOGLE_SECRET")
-            );
+                new NpgsqlConnectionStringBuilder($"Host=localhost;Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}");
 
             this.postgresContainer = new PostgresContainer(connectionStringBuilder);
-            this.ironcladContainer = new IroncladContainer(Endpoint, connectionStringBuilder, registryCredentials, googleCredentials);
+
             this.authenticationFixture = new AuthenticationFixture();
         }
 
@@ -59,6 +50,19 @@ namespace Apollo.Tests.Unit.Sdk
         public async Task InitializeAsync()
         {
             await this.postgresContainer.InitializeAsync().ConfigureAwait(false);
+
+            var registryCredentials = new NetworkCredential(
+                Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
+                Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
+            );
+            var googleCredentials = new NetworkCredential(
+                Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"),
+                Environment.GetEnvironmentVariable("GOOGLE_SECRET")
+            );
+
+            var ironCladConnectionString = new NpgsqlConnectionStringBuilder($"Host={await this.postgresContainer.GetContainerIp()};Database=ironclad;Username=postgres;Password=postgres;Port=5432");
+
+            this.ironcladContainer = new IroncladContainer(Endpoint, ironCladConnectionString, registryCredentials, googleCredentials);
 
             await this.ironcladContainer.InitializeAsync().ConfigureAwait(false);
 

@@ -113,8 +113,8 @@
                     Password = Guid.NewGuid().ToString("N"),
                     Email = $"{Guid.NewGuid():N}@example.com",
                     PhoneNumber = phoneNumber,
-                    EmailConfirmed = true,
-                    PhoneNumberConfirmed = false
+                    EmailVerified = true,
+                    PhoneNumberVerified = false
                 };
 
                 var response = await this.ironcladClient.PostAsync("/api/users",

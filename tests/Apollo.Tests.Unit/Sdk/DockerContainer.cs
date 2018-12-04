@@ -12,11 +12,12 @@ namespace Apollo.Tests.Unit.Sdk
     using Docker.DotNet;
     using Docker.DotNet.Models;
     using Xunit;
-    
+
     // ReSharper disable once CA1001
     public abstract class DockerContainer : IAsyncLifetime
     {
         private const string UnixPipe = "unix:///var/run/docker.sock";
+
         private const string WindowsPipe = "npipe://./pipe/docker_engine";
 
         private readonly DockerClientConfiguration clientConfiguration =
@@ -24,6 +25,7 @@ namespace Apollo.Tests.Unit.Sdk
                 new Uri(Environment.GetEnvironmentVariable("DOCKER_HOST") ?? (Environment.OSVersion.Platform.Equals(PlatformID.Unix) ? UnixPipe : WindowsPipe)));
 
         private readonly DockerClient client;
+
         private DockerContainerConfiguration configuration;
 
         protected DockerContainer()
@@ -107,7 +109,7 @@ namespace Apollo.Tests.Unit.Sdk
             {
                 throw new InvalidOperationException("Please provide the Configuration before initializing the fixture.");
             }
-            
+
             await this.AutoCreateImage(default).ConfigureAwait(false);
             if (this.Configuration.AutoRemoveContainerOnInitialization)
             {
@@ -121,6 +123,7 @@ namespace Apollo.Tests.Unit.Sdk
                     }
                 }
             }
+
             await this.AutoStartContainer(default).ConfigureAwait(false);
         }
 
@@ -150,16 +153,16 @@ namespace Apollo.Tests.Unit.Sdk
         {
             var containers = await this.client.Containers.ListContainersAsync(
                 new ContainersListParameters
-            {
-                All = true,
-                Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
-                    ["name"] = new Dictionary<string, bool>
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
                     {
-                        [this.Configuration.ContainerName] = true
+                        ["name"] = new Dictionary<string, bool>
+                        {
+                            [this.Configuration.ContainerName] = true
+                        }
                     }
-                }
-            }, token).ConfigureAwait(false);
+                }, token).ConfigureAwait(false);
 
             return containers
                 .FirstOrDefault(container => container.State != "exited")
@@ -261,8 +264,8 @@ namespace Apollo.Tests.Unit.Sdk
                             Tag = this.Configuration.Tag
                         },
                         this.Configuration.RegistryCredentials != null
-                        ? new AuthConfig { Username = this.Configuration.RegistryCredentials.UserName, Password = this.Configuration.RegistryCredentials.Password }
-                        : null, 
+                            ? new AuthConfig { Username = this.Configuration.RegistryCredentials.UserName, Password = this.Configuration.RegistryCredentials.Password }
+                            : null,
                         Progress.IsBeingIgnored,
                         token)
                     .ConfigureAwait(false);
@@ -282,6 +285,20 @@ namespace Apollo.Tests.Unit.Sdk
             public void Report(JSONMessage value)
             {
             }
+        }
+
+        public async Task<string> GetContainerIp()
+        {
+            var containerId = await this.TryFindContainer(default);
+
+            if (string.IsNullOrEmpty(containerId))
+            {
+                throw new Exception("Container could not be found");
+            }
+
+            var containerInspection = await this.client.Containers.InspectContainerAsync(containerId);
+
+            return containerInspection.NetworkSettings.IPAddress;
         }
     }
 }

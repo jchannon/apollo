@@ -24,6 +24,7 @@
         protected override async Task<Error> Handle(PhoneVerficationCommand command)
         {
             await this.GetUserClaims(command);
+            
             if (!this.emailVerified)
             {
                 return new Error { ErrorCode = 400 };
