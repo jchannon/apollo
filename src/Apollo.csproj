@@ -1,16 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <LangVersion>latest</LangVersion>
+        <UserSecretsId>36e48e2c-c27c-402f-b564-98848ffa0dc9</UserSecretsId>
     </PropertyGroup>
     
     <ItemGroup>
         <PackageReference Include="Carter" Version="3.8.0" />
+        <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
         <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
         <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
         <PackageReference Include="Microsoft.AspNetCore" Version="2.1.6" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="4.0.1" />
     </ItemGroup>
 
 </Project>
