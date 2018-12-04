@@ -1,16 +1,13 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Net;
-using System.Net.Http;
-using FluentAssertions;
-using Xbehave;
-
 namespace Apollo.Tests.Unit
 {
-    using System.Threading.Tasks;
-    using Sdk;
+    using System;
+    using System.Net;
+    using System.Net.Http;
+    using FluentAssertions;
+    using Xbehave;    using Sdk;
     using Xunit;
 
     [Collection(nameof(ApolloIntegrationCollection))]

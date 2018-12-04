@@ -51,8 +51,15 @@ namespace Apollo.Tests.Unit
 
         public async Task RegisterUser(bool emailVerified = false, bool phoneVerified = false)
         {
-            CurrentUser.EmailConfirmed = emailVerified;
-            CurrentUser.PhoneNumberConfirmed = phoneVerified;
+            if (emailVerified)
+            {
+                CurrentUser.VerifyEmail();
+            }
+
+            if (phoneVerified)
+            {
+                CurrentUser.VerifyPhone();
+            }
             
             var response = await this.ironcladClient.PostAsync("/api/users",
                 new StringContent(JsonConvert.SerializeObject(CurrentUser), Encoding.UTF8, "application/json"));
