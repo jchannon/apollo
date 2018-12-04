@@ -1,6 +1,5 @@
 ﻿namespace Apollo
 {
-    using System;
     using Carter;
     using IdentityServer4.AccessTokenValidation;
     using Microsoft.AspNetCore.Builder;
@@ -19,14 +18,19 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton(this.appSettings);
-            
+
+            services.AddSingleton(s => new Handler(new ICommandHandler[]
+            {
+                new PhoneVerificationCommandHandler(s.GetRequiredService<AppSettings>())
+            }));
+
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
                     options.Authority = this.appSettings.IdentityServer.Authority;
                     options.ApiName = this.appSettings.IdentityServer.ApiName;
                     options.ApiSecret = this.appSettings.IdentityServer.ApiSecret;
-                    
+
                     options.RequireHttpsMetadata = false;
                     if (this.appSettings.IdentityServer.CacheTimeout.TotalMilliseconds > 0)
                     {
@@ -43,21 +47,5 @@
             app.UseAuthentication();
             app.UseCarter();
         }
-    }
-
-    public class AppSettings
-    {
-        public IdentityServerSettings IdentityServer { get; set; }
-    }
-
-    public class IdentityServerSettings
-    {
-        public string Authority { get; set; }
-
-        public string ApiName { get; set; }
-
-        public string ApiSecret { get; set; }
-
-        public TimeSpan CacheTimeout { get; set; }
     }
 }
