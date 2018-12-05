@@ -37,7 +37,7 @@ namespace Apollo.Features.Verification.Email
                     return;
                 }
 
-                var userId = context.User.FindFirst("sub").Value;
+                var userId = context.User.GetUserId();
 
                 await verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(result.Data.Code));
                 context.Response.StatusCode = 400;
@@ -46,7 +46,7 @@ namespace Apollo.Features.Verification.Email
 
         private async Task SendConfirmationCode(HttpContext context)
         {
-            var userId = context.User.FindFirst("sub").Value;
+            var userId = context.User.GetUserId();
 
             await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, async code =>
             {
