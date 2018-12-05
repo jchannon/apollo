@@ -61,7 +61,7 @@ namespace Apollo.Tests.Unit
         }
 
         [Scenario]
-        public void Providing_correct_code_after_three_incorrect_attempts(string code, string invalidCode)
+        public void Providing_correct_code_after_three_incorrect_attempts(string validCode, string invalidCode, HttpResponseMessage verificationSubmissionResponse)
         {
             "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
@@ -69,17 +69,25 @@ namespace Apollo.Tests.Unit
 
             "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
 
-            "And I wait for the email confirmation code".x(async () => { code = await this.driver.WaitForEmailWithConfirmationCode(); });
+            "And I wait for the email confirmation code".x(async () => { validCode = await this.driver.WaitForEmailWithConfirmationCode(); });
 
             "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
+            
+            "And I send the invalid code".x(async () => verificationSubmissionResponse = await this.driver.SubmitVerificationCode(invalidCode));
 
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(invalidCode);
-//
-//            await this.driver.SendEmailConfirmationCode(code);
+            "Then the code is rejected".x(async () => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            
+            "And When I submit the invalid code again".x(async () => verificationSubmissionResponse = await this.driver.SubmitVerificationCode(invalidCode));
+
+            "Then the code is rejected".x(async () => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            
+            "And When I submit the invalid code a third time".x(async () => verificationSubmissionResponse = await this.driver.SubmitVerificationCode(invalidCode));
+
+            "Then the code is rejected".x(async () => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+
+            "And when I submit the valid code".x(async () => verificationSubmissionResponse = await this.driver.SubmitVerificationCode(validCode));
+            
+            "Then the code is rejected".x(async () => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
         }
 
         [Scenario]

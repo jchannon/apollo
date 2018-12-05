@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Apollo.Models
+namespace Apollo.Features.Verification.Email
 {
     public class EmailConfirmationModelValidator : AbstractValidator<EmailConfirmationModel>
     {

@@ -1,4 +1,4 @@
-﻿namespace Apollo.Models
+﻿namespace Apollo.Features.Verification.Email
 {
     /// <summary>
     /// Email confirmation request details

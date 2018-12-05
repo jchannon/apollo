@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using Apollo.Features.Verification;
+using Apollo.Features.Verification.Email;
 using Apollo.Settings;
 using Carter;
 using IdentityServer4.AccessTokenValidation;
@@ -32,6 +34,9 @@ namespace Apollo
             services.AddSingleton<IVerificationRequestRepository>(x =>
                 new VerificationRequestRepository(_appSettings.Db.DataConnString));
 
+            services.AddSingleton(_appSettings);
+            services.AddSingleton<MailSender>();
+            services.AddSingleton<VerificationCodeManager>();
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
