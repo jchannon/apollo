@@ -18,7 +18,7 @@ namespace Apollo.Features.Verification.Email
         private readonly MailSender sender;
         private readonly HttpClient client = new HttpClient();
 
-        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender) : base("/emailVerification")
+        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender) : base("/emailverification")
         {
             this.verificationCodeManager = verificationCodeManager;
             this.sender = sender;
