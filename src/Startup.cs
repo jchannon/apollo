@@ -29,8 +29,6 @@ namespace Apollo
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCarter();
-
             services.AddSingleton<IVerificationRequestRepository>(x =>
                 new VerificationRequestRepository(_appSettings.Db.DataConnString));
 
@@ -43,6 +41,7 @@ namespace Apollo
                     options.Authority = _appSettings.IdentityServer.Authority;
                     options.ApiName = _appSettings.IdentityServer.ApiName;
                     options.ApiSecret = _appSettings.IdentityServer.ApiSecret;
+                    options.RequireHttpsMetadata = false;
 
                     if (_appSettings.IdentityServer.CacheTimeout.TotalMilliseconds > 0)
                     {
