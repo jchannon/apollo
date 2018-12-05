@@ -21,17 +21,21 @@ namespace Apollo.Tests.Unit
         }
 
         [Scenario]
-        public void Verifying_an_email_address(string code)
+        public void Verifying_an_email_address(string code, HttpResponseMessage verificationRequestResponse, HttpResponseMessage verificationSubmissionResponse)
         {
             "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
             "And I can login as the user".x(async () => { await this.driver.Login(); });
 
-            "When I request to verify my email address".x(async () => { await this.driver.SendRequestToVerifyEmailAddress(); });
+            "When I request to verify my email address".x(async () => { verificationRequestResponse = await this.driver.SendRequestToVerifyEmailAddress(); });
+
+            "And the request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
             "And I wait for the email confirmation code".x(async () => { code = await this.driver.WaitForEmailWithConfirmationCode(); });
 
-            "And I submit the confirmation code to be verified".x(async () => { await this.driver.SubmitVerificationCode(code); });
+            "And I submit the confirmation code to be verified".x(async () => { verificationSubmissionResponse = await this.driver.SubmitVerificationCode(code); });
+           
+            "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
             "Then my email verification status is true in Ironclad".x(async () => { await this.driver.WaitForEmailToBeVerified(); });
         }

@@ -14,11 +14,13 @@ namespace Apollo.Tests.Unit.Sdk
     public class BuiltFromSourceApollo : IAsyncLifetime
     {
         private readonly Uri apolloUri;
+        private readonly Uri smtpUri;
         private Process process;
 
-        public BuiltFromSourceApollo(Uri apolloUri)
+        public BuiltFromSourceApollo(Uri apolloUri, Uri smtpUri)
         {
             this.apolloUri = apolloUri;
+            this.smtpUri = smtpUri;
         }
 
         public async Task InitializeAsync()
@@ -28,7 +30,10 @@ namespace Apollo.Tests.Unit.Sdk
                 "..{0}..{0}..{0}..{0}..{0}src{0}Apollo.csproj",
                 Path.DirectorySeparatorChar);
 
-            var arguments = $"run -p {path}";
+            
+            var arguments = Environment.OSVersion.Platform.Equals(PlatformID.Unix)
+                ? $"run -p {path} -- --smtp:host={this.smtpUri.Host} --smtp:port={this.smtpUri.Port}"
+                : $"run -p {path} --smtp:host={this.smtpUri.Host}  --smtp:port={this.smtpUri.Port}";
 
             this.process = Process.Start(
                 new ProcessStartInfo(

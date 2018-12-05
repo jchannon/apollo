@@ -31,11 +31,9 @@ namespace Apollo.Tests.Unit
         
         public MailAddress FromEmailAddress { get; }
 
-        public async Task SendRequestToVerifyEmailAddress()
+        public async Task<HttpResponseMessage> SendRequestToVerifyEmailAddress()
         {
-            var response = await this.ApolloClient.PostAsync("/email-verification-request", null);
-
-            response.EnsureSuccessStatusCode();
+            return await this.ApolloClient.PostAsync("/emailVerification", null);
         }
         
         public async Task<string> WaitForEmailWithConfirmationCode()
@@ -63,7 +61,7 @@ namespace Apollo.Tests.Unit
                     }
                 }
 
-                return message.Body;
+                return message.Body.Trim();
             }
         }
 
@@ -189,12 +187,12 @@ namespace Apollo.Tests.Unit
                 code
             };
 
-            return await this.ApolloClient.PostAsJsonAsync("/email-confirmation-request", request);
+            return await this.ApolloClient.PostAsJsonAsync("/emailVerification/confirmation", request);
         }
 
         public async Task WaitForEmailToBeVerified()
         {
-            await Task.Yield();
+            throw new Exception();
         }
     }
 }

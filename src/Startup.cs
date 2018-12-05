@@ -1,24 +1,23 @@
-﻿using Apollo.Persistence;
-using Apollo.Persistence.AzureStorage;
+using System;
+using System.IO;
 using Apollo.Settings;
-using Apollo.Swagger;
 using Carter;
 using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.Swagger;
+using Newtonsoft.Json;
 
 namespace Apollo
 {
+    using Apollo.Persistence;
+    using Apollo.Persistence.AzureStorage;
+
     public class Startup
     {
         public IConfiguration Configuration { get; }
 
         private readonly AppSettings _appSettings = new AppSettings();
-
-        private const string ApiVersion = "v1";
-        private const string ApiTitle = "Lykke KYC API";
 
         public Startup(IConfiguration configuration)
         {
@@ -47,36 +46,14 @@ namespace Apollo
                     }
                 });
 
-#if DEBUG
-            services.AddSwaggerGen(opt =>
-            {
-                opt.SwaggerDoc("v1", new Info {Title = ApiTitle, Version = ApiVersion});
-                opt.DocumentFilter<SecurityRequirementsDocumentFilter>();
-                opt.AddSecurityDefinition("oauth2", new OAuth2Scheme
-                {
-                    Type = "oauth2",
-                    Flow = "implicit",
-                    Scopes = _appSettings.Swagger.Security.OAuth2Scopes,
-                    AuthorizationUrl = _appSettings.Swagger.Security.AuthorizeEndpoint
-                });
-            });
-#endif
+            services.AddCarter();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseCarter();
-
             app.UseAuthentication();
 
-#if DEBUG
-            app.UseSwaggerUI(opt =>
-            {
-                opt.RoutePrefix = "swagger/ui";
-                opt.SwaggerEndpoint($"/swagger/{ApiVersion}/swagger.json", ApiTitle);
-                opt.OAuthClientId(_appSettings.Swagger.Security.OAuth2ClientId);
-            });
-#endif
+            app.UseCarter();
         }
     }
 }
