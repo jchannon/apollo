@@ -1,6 +1,8 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using Apollo.Features.Verification;
+
 namespace Apollo.Tests.Unit
 {
     using System;
