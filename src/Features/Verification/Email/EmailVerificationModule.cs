@@ -57,6 +57,7 @@ namespace Apollo.Features.Verification.Email
 
         private async Task<string> GetUserEmail(HttpContext context)
         {
+            //todo remove when we get the claims from ironclad
             this.client.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(context.Request.Headers["Authorization"]);
             using (var response = await this.client.GetAsync($"http://localhost:5005/connect/userinfo", context.RequestAborted).ConfigureAwait(false))
             {
