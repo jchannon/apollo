@@ -1,10 +1,10 @@
-using System;
-using System.Globalization;
-using System.Linq;
-using System.Security.Cryptography;
-
-namespace Apollo.Domain
+namespace Apollo.Features.Verification
 {
+    using System;
+    using System.Globalization;
+    using System.Linq;
+    using System.Security.Cryptography;
+
     public class VerificationCode : IEquatable<VerificationCode>
     {
         private const int FixedLength = 4;
@@ -44,7 +44,7 @@ namespace Apollo.Domain
         }
 
         public bool Equals(VerificationCode other) => other != null && other.value == this.value;
-        public override bool Equals(object obj) => obj is VerificationCode other && Equals(other);
+        public override bool Equals(object obj) => obj is VerificationCode other && this.Equals(other);
         public override int GetHashCode() => this.value.GetHashCode();
         public override string ToString() => this.value;
     }

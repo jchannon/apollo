@@ -1,82 +1,60 @@
-﻿using Apollo.Persistence;
-using Apollo.Persistence.AzureStorage;
+using Apollo.Features.Verification;
+using Apollo.Features.Verification.Email;
 using Apollo.Settings;
-using Apollo.Swagger;
 using Carter;
 using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.Swagger;
 
 namespace Apollo
 {
+    using Apollo.Persistence;
+    using Apollo.Persistence.AzureStorage;
+
     public class Startup
     {
         public IConfiguration Configuration { get; }
 
-        private readonly AppSettings _appSettings = new AppSettings();
-
-        private const string ApiVersion = "v1";
-        private const string ApiTitle = "Lykke KYC API";
+        private readonly AppSettings appSettings = new AppSettings();
 
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
-            Configuration.Bind(_appSettings);
+            this.Configuration = configuration;
+            this.Configuration.Bind(this.appSettings);
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCarter();
-
             services.AddSingleton<IVerificationRequestRepository>(x =>
-                new VerificationRequestRepository(_appSettings.Db.DataConnString));
+                new VerificationRequestRepository(this.appSettings.Db.DataConnString));
 
+            services.AddSingleton(this.appSettings);
+            services.AddSingleton<MailSender>();
+            services.AddSingleton<VerificationCodeManager>();
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
-                    options.Authority = _appSettings.IdentityServer.Authority;
-                    options.ApiName = _appSettings.IdentityServer.ApiName;
-                    options.ApiSecret = _appSettings.IdentityServer.ApiSecret;
+                    options.Authority = this.appSettings.IdentityServer.Authority;
+                    options.ApiName = this.appSettings.IdentityServer.ApiName;
+                    options.ApiSecret = this.appSettings.IdentityServer.ApiSecret;
+                    options.RequireHttpsMetadata = false;
 
-                    if (_appSettings.IdentityServer.CacheTimeout.TotalMilliseconds > 0)
+                    if (this.appSettings.IdentityServer.CacheTimeout.TotalMilliseconds > 0)
                     {
                         options.EnableCaching = true;
-                        options.CacheDuration = _appSettings.IdentityServer.CacheTimeout;
+                        options.CacheDuration = this.appSettings.IdentityServer.CacheTimeout;
                     }
                 });
 
-#if DEBUG
-            services.AddSwaggerGen(opt =>
-            {
-                opt.SwaggerDoc("v1", new Info {Title = ApiTitle, Version = ApiVersion});
-                opt.DocumentFilter<SecurityRequirementsDocumentFilter>();
-                opt.AddSecurityDefinition("oauth2", new OAuth2Scheme
-                {
-                    Type = "oauth2",
-                    Flow = "implicit",
-                    Scopes = _appSettings.Swagger.Security.OAuth2Scopes,
-                    AuthorizationUrl = _appSettings.Swagger.Security.AuthorizeEndpoint
-                });
-            });
-#endif
+            services.AddCarter();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseCarter();
-
             app.UseAuthentication();
 
-#if DEBUG
-            app.UseSwaggerUI(opt =>
-            {
-                opt.RoutePrefix = "swagger/ui";
-                opt.SwaggerEndpoint($"/swagger/{ApiVersion}/swagger.json", ApiTitle);
-                opt.OAuthClientId(_appSettings.Swagger.Security.OAuth2ClientId);
-            });
-#endif
+            app.UseCarter();
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Apollo.Tests.Unit.Sdk
             this.azureStorageEmulatorContainer = new AzureStorageEmulatorContainer();
             this.mailhogContainer = new MailHogContainer(this.SmtpServerEndpoint, this.SmtpServerHttpEndpoint);
             this.ironcladComponent = new IroncladComponent(ApolloAuthApiIdentifier, ApolloAuthClientId, ApolloEndpoint);
-            this.apolloInstance = new BuiltFromSourceApollo(ApolloEndpoint);
+            this.apolloInstance = new BuiltFromSourceApollo(ApolloEndpoint, this.SmtpServerEndpoint);
         }
 
         public Uri SmtpServerEndpoint { get; }
