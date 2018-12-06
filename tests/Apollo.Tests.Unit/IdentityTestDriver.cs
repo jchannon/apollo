@@ -73,7 +73,7 @@ namespace Apollo.Tests.Unit
                 .CreateAuthorizeUrl(ApolloIntegrationFixture.ApolloAuthClientId, "id_token token", $"openid profile {ApolloIntegrationFixture.ApolloAuthApiIdentifier}",
                     $"{this.Services.ApolloEndpoint}/redirect", "state", "nonce");
 
-            var automation = new BrowserAutomation("admin", "password");
+            var automation = new BrowserAutomation(CurrentUser.Username, CurrentUser.Password);
             await automation.NavigateToLoginAsync(url).ConfigureAwait(false);
             var authorizeResponse = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync().ConfigureAwait(false);
 

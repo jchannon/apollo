@@ -32,11 +32,11 @@ namespace Apollo.Tests.Unit.Sdk
         public Uri SmtpServerHttpEndpoint { get; }
         public Uri IdentityAuthority => this.ironcladComponent.Endpoint;
 
-        public Uri ApolloEndpoint => new Uri("http://localhost:5006");
+        public Uri ApolloEndpoint => new Uri(ApolloEndpointUri);
 
         public const string ApolloAuthApiIdentifier = "apollo";
         public const string ApolloAuthClientId = "apollo";
-
+        public const string ApolloEndpointUri = "http://localhost:5006/status";
 
         public HttpMessageHandler IdentityAuthorityAdminHandler => this.ironcladComponent.Handler;
         // TODO: Expose all the relevant properties such that tests can connect to the various services 

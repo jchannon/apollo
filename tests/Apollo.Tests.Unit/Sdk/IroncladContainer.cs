@@ -45,7 +45,8 @@ namespace Apollo.Tests.Unit.Sdk
                 {
                     $"IRONCLAD_CONNECTIONSTRING={connectionStringBuilder.ConnectionString}",
                     $"GOOGLE_CLIENT_ID={googleCredentials.UserName}",
-                    $"GOOGLE_SECRET={googleCredentials.Password}"
+                    $"GOOGLE_SECRET={googleCredentials.Password}",
+                    "INTROSPECTION-SECRET=api_secret"
                 },
                 ContainerPortBindings = new[]
                 {

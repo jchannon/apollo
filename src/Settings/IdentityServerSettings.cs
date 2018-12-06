@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Apollo.Settings
+﻿namespace Apollo.Settings
 {
+    using System;
+
     public class IdentityServerSettings
     {
         public string Authority { get; set; }

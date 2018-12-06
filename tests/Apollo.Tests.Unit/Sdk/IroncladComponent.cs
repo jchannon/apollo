@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Ironclad.Tests.Sdk;
@@ -18,10 +19,15 @@ namespace Apollo.Tests.Unit.Sdk
     public class IroncladComponent : IAsyncLifetime
     {
         private readonly string apiIdentifier;
+
         private readonly string clientId;
+
         private readonly Uri apolloEndpoint;
+
         private readonly PostgresContainer postgresContainer;
-        private readonly IroncladContainer ironcladContainer;
+
+        private IroncladContainer ironcladContainer;
+
         private readonly AuthenticationFixture authenticationFixture;
 
         public IroncladComponent(string apiIdentifier, string clientId, Uri apolloEndpoint)
@@ -30,7 +36,20 @@ namespace Apollo.Tests.Unit.Sdk
             this.clientId = clientId;
             this.apolloEndpoint = apolloEndpoint;
             var connectionStringBuilder =
-                new NpgsqlConnectionStringBuilder($"Host={ResolveHost()};Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}");
+                new NpgsqlConnectionStringBuilder($"Host=localhost;Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}");
+
+            this.postgresContainer = new PostgresContainer(connectionStringBuilder);
+
+            this.authenticationFixture = new AuthenticationFixture();
+        }
+
+        public HttpMessageHandler Handler => this.authenticationFixture.Handler;
+
+        public Uri Endpoint => new Uri("http://localhost:5005");
+
+        public async Task InitializeAsync()
+        {
+            await this.postgresContainer.InitializeAsync().ConfigureAwait(false);
 
             var registryCredentials = new NetworkCredential(
                 Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
@@ -41,17 +60,9 @@ namespace Apollo.Tests.Unit.Sdk
                 Environment.GetEnvironmentVariable("GOOGLE_SECRET")
             );
 
-            this.postgresContainer = new PostgresContainer(connectionStringBuilder);
-            this.ironcladContainer = new IroncladContainer(Endpoint, connectionStringBuilder, registryCredentials, googleCredentials);
-            this.authenticationFixture = new AuthenticationFixture();
-        }
+            var ironCladConnectionString = new NpgsqlConnectionStringBuilder($"Host={await this.postgresContainer.GetContainerIp()};Database=ironclad;Username=postgres;Password=postgres;Port=5432");
 
-        public HttpMessageHandler Handler => this.authenticationFixture.Handler;
-        public Uri Endpoint => new Uri("http://localhost:5005");
-
-        public async Task InitializeAsync()
-        {
-            await this.postgresContainer.InitializeAsync().ConfigureAwait(false);
+            this.ironcladContainer = new IroncladContainer(Endpoint, ironCladConnectionString, registryCredentials, googleCredentials);
 
             await this.ironcladContainer.InitializeAsync().ConfigureAwait(false);
 
@@ -71,7 +82,7 @@ namespace Apollo.Tests.Unit.Sdk
 
         private static string ResolveHost()
         {
-            if (Environment.OSVersion.Platform.Equals(PlatformID.Unix))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return Environment.MachineName;
             }
@@ -102,32 +113,37 @@ namespace Apollo.Tests.Unit.Sdk
             {
                 Name = this.apiIdentifier,
                 ApiSecret = "secret",
-                ApiScopes = new List<object>{ new 
+                ApiScopes = new List<object>
                 {
-                    Name = this.apiIdentifier,
-                    UserClaims = new List<string>{ "openid", "profile" }
-                }},
+                    new
+                    {
+                        Name = this.apiIdentifier,
+                        UserClaims = new List<string> { "phone_number", "phone_number_verified", "email", "email_verified" }
+                    }
+                },
+                UserClaims = new List<string> { "phone_number", "phone_number_verified", "email", "email_verified" },
                 Enabled = true
             };
-            
+
             await httpClient.PostAsync("/api/apiresources", new StringContent(JsonConvert.SerializeObject(apiResource, GetJsonSerializerSettings()), Encoding.UTF8, "application/json"));
 
             var client = new
             {
                 Id = this.clientId,
                 Name = this.clientId,
-                AllowedCorsOrigins = new List<string> {this.apolloEndpoint.ToString()},
-                RedirectUris = new List<string> {$"{this.apolloEndpoint}/redirect"},
-                AllowedScopes = new List<string> {"openid", "profile", this.apiIdentifier},
+                AllowedCorsOrigins = new List<string> { this.apolloEndpoint.ToString() },
+                RedirectUris = new List<string> { $"{this.apolloEndpoint}/redirect" },
+                AllowedScopes = new List<string> { "openid", "profile", this.apiIdentifier },
                 AllowAccessTokensViaBrowser = true,
-                AllowedGrantTypes = new List<string> {"implicit"},
+                AllowedGrantTypes = new List<string> { "implicit" },
                 RequireConsent = false,
-                Enabled = true
+                Enabled = true,
+                AlwaysIncludeUserClaimsInIdToken = true
             };
 
             await httpClient.PostAsync("/api/clients", new StringContent(JsonConvert.SerializeObject(client, GetJsonSerializerSettings()), Encoding.UTF8, "application/json"));
         }
-        
+
         private static JsonSerializerSettings GetJsonSerializerSettings()
         {
             var settings = new JsonSerializerSettings
@@ -141,5 +157,4 @@ namespace Apollo.Tests.Unit.Sdk
             return settings;
         }
     }
-    
 }

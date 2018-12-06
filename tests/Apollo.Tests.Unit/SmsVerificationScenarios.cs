@@ -1,21 +1,19 @@
-using System;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using Apollo.Tests.Unit.Sdk;
-using FluentAssertions;
-using IdentityModel.Client;
-using Ironclad.Tests.Sdk;
-using Newtonsoft.Json;
-using Xbehave;
-using Xunit;
-
 namespace Apollo.Tests.Unit
 {
+    using System.Net;
+    using System.Net.Http;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Apollo.Tests.Unit.Sdk;
+    using FluentAssertions;
+    using Newtonsoft.Json;
+    using Xbehave;
+    using Xunit;
+
     [Collection(nameof(ApolloIntegrationCollection))]
     public class SmsVerificationScenarios
     {
-        private Driver driver;
+        private readonly Driver driver;
 
         public SmsVerificationScenarios(ApolloIntegrationFixture services)
         {
@@ -23,112 +21,223 @@ namespace Apollo.Tests.Unit
         }
 
         [Scenario]
+        public void Verifying_an_invalid_phone_number()
+        {
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
+
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I request a code to be sent via SMS to verify my phone number with invalid data".x(async () => { await this.driver.RequestSMSCodeWithInvalidData(); });
+
+            "Then I get a API response to indication validation failure".x(async () => { await this.driver.CheckInvalidResponse(); });
+        }
+
+        [Scenario]
         public void Verifying_a_phone_number()
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
 
-            "I can login as the user".x(async () => { await this.driver.Login(); });
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
 
-//            await this.driver.SendRequestToVerifyPhoneNumberBySMS();
-//
-//            var code = await this.driver.WaitForSMSWithCodeToArrive();
-//
-//            await this.driver.SendSMSConfirmationCode(code);
-//
-//            await this.driver.WaitForPhoneVerifiedToBeSetInIronclad();
+            "When I request a code to be sent via SMS to verify my phone number".x(async () => { await this.driver.RequestSMSCode(); });
+
+            "Then I receive an SMS with the verification code in".x(async () => { await this.driver.WaitForSMS(); });
+
+            "And I can submit that code to verify my phone number".x(async () => { await this.driver.SubmitVerificationCode(); });
+
+            "Then my phone number is verified".x(() => { this.driver.CheckPhoneIsVerified(); });
         }
 
-        [Fact]
-        public Task Providing_incorrect_code_three_times()
+        [Scenario]
+        public void Verifying_a_phone_number_when_already_asked_for_verification()
         {
-//            await this.driver.RegisterUser();
-//
-//            await this.driver.LoginAsUser();
-//
-//            await this.driver.SendRequestToVerifyPhoneNumberBySMS();
-//
-//            var code = await this.driver.WaitForSMSWithCodeToArrive();
-//
-//            await this.driver.SendInvalidConfirmationCode(code);
-//
-//            await this.driver.SendInvalidConfirmationCode(code);
-//
-//            await this.driver.SendInvalidConfirmationCode(code);
-//
-//            await this.driver.UseExpiredVerificationCode();
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
 
-            return Task.CompletedTask;
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I request a code to be sent via SMS to verify my phone number".x(async () => { await this.driver.RequestSMSCode(); });
+
+            "Then I request a code to be verified again".x(async () => { await this.driver.RequestSubsequentSMSCode(); });
+
+            "Then the response shows a bad request".x(() => { this.driver.CheckPhoneIsAlreadyBeingProcessed(); });
         }
 
-        [Fact]
-        public Task Veryifying_phone_number_without_verified_email()
+        [Scenario]
+        public void Verifying_phone_number_without_requesting_a_code()
         {
-//            await this.driver.RegisterUserWithUnverifiedEmail();
-//
-//            await this.driver.LoginAsUser();
-//
-//            await this.driver.SendRequestToVerifyPhoneNumberBySMSAndBeRejected();
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
 
-            return Task.CompletedTask;
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I send an invalid verification code without submitting one".x(async () => { await this.driver.SubmitInvalidVerificationCode(); });
+
+            "Then my phone number is not verified".x(() => { this.driver.CheckPhoneIsNotVerified(); });
         }
 
-        [Fact]
-        public Task Verifying_phone_number_without_requesting_a_code()
+        [Scenario]
+        public void Veryifying_phone_number_without_verified_email()
         {
-//            await this.driver.RegisterUser();
-//
-//            await this.driver.LoginAsUser();
-//
-//            await this.driver.SendInvalidConfirmationCode(code);
-//
+            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
 
-            return Task.CompletedTask;
+            "And I can login as the user".x(async () => { await this.driver.Login(); });
+
+            "When I request a code to be sent via SMS to verify my phone number".x(async () => { await this.driver.RequestSMSCodeWithUnverifiedEmail(); });
+
+            "Then my phone number is not verified".x(async () => { await this.driver.CheckPhoneIsNotVerifiedWithUnverifiedEmail(); });
         }
 
-        [Fact]
-        public Task Providing_incorrect_code_three_times_and_then_succeeding_with_new_code()
-        {
-//            await this.driver.RegisterUser();
-//
-//            await this.driver.LoginAsUser();
-//
-//            await this.driver.SendRequestToVerifyPhoneNumberBySMS();
-//
-//            var code = await this.driver.WaitForSMSWithCodeToArrive();
-//
-//            await this.driver.SendInvalidConfirmationCode(code);
-//
-//            await this.driver.SendInvalidConfirmationCode(code);
-//
-//            await this.driver.SendInvalidConfirmationCode(code);
-//
-//            await this.driver.RequestNewVerificationCode(code);
-//
-//            var code = await this.driver.WaitForSMSWithCodeToArrive();
-//
-//            await this.driver.SendSMSConfirmationCode(code);
-//
-//            await this.driver.WaitForPhoneVerifiedToBeSetInIronclad();
+        //        [Scenario]
+        //        public void Providing_incorrect_code_three_times()
+        //        {
+        //            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+        //
+        //            "And I can login as the user".x(async () => { await this.driver.Login(); });
+        //
+        //            "When I request a code to be sent via SMS to verify my phone number".x(async () => { await this.driver.RequestSMSCode(); });
+        //
+        //            "Then I receive an SMS with the verification code in".x(async () => { await this.driver.WaitForSMS(); });
+        //
+        //            "And I send an invalid verification code".x(async () => { await this.driver.SubmitInvalidVerificationCode(); });
+        //
+        //            "And I send an invalid verification code a second time".x(async () => { await this.driver.SubmitInvalidVerificationCode(); });
+        //
+        //            "And I send an invalid verification code a third time".x(async () => { await this.driver.SubmitInvalidVerificationCode(); });
+        //
+        //            "And then I use the expired valid code".x(async () => { await this.driver.SubmitExpiredVerificationCode(); });
+        //
+        //            "Then my phone number is not verified".x(async () => { await this.driver.CheckPhoneIsNotVerified(); });
+        //        }
 
-            return Task.CompletedTask;
-        }
+        //
+        //
+        //        [Scenario]
+        //        public void Providing_incorrect_code_three_times_and_then_succeeding_with_new_code()
+        //        {
+        //            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(); });
+        //
+        //            "And I can login as the user".x(async () => { await this.driver.Login(); });
+        //
+        //            "When I request a code to be sent via SMS to verify my phone number".x(async () => { await this.driver.RequestSMSCode(); });
+        //
+        //            "Then I receive an SMS with the verification code in".x(async () => { await this.driver.WaitForSMS(); });
+        //
+        //            "And I send an invalid verification code".x(async () => { await this.driver.SubmitInvalidVerificationCode(); });
+        //
+        //            "And I send an invalid verification code a second time".x(async () => { await this.driver.SubmitInvalidVerificationCode(); });
+        //
+        //            "And I send an invalid verification code a third time".x(async () => { await this.driver.SubmitInvalidVerificationCode(); });
+        //
+        //            "Then I Request a new verification code".x(async () => { await this.driver.RequestSMSCode(); });
+        //
+        //            "Then I receive an SMS with the verification code in".x(async () => { await this.driver.WaitForSMS(); });
+        //
+        //            "And I can submit that code to verify my phone number".x(async () => { await this.driver.SubmitVerificationCode(); });
+        //
+        //            "Then my phone number is verified".x(() => { this.driver.CheckPhoneIsVerified(); });
+        //        }
 
-        [Fact]
-        public Task Verifying_an_already_verified_phone_number()
-        {
-            return Task.CompletedTask;
-        }
+        //        [Fact]
+        //        public Task Verifying_an_already_verified_phone_number()
+        //        {
+        //           return Task.CompletedTask;
+        //        }
 
         private class Driver : IdentityTestDriver
         {
             private readonly ApolloIntegrationFixture services;
-            private readonly HttpClient ironcladClient;
-            private User currentUser;
-            private string accessToken;
+            private string smsCodeFromTwilio;
+
+            private string invalidSmsCodeFromTwilio = "";
+
+            private HttpResponseMessage submissionResponse;
+
+            private HttpResponseMessage smsInvalidResponse;
+
+            private HttpResponseMessage subsequentSmsResponse;
+
+            private HttpResponseMessage unverifiedemailphoneResponse;
 
             public Driver(ApolloIntegrationFixture services) : base(services)
             {
             }
+            
+            public async Task RequestSMSCode()
+            {
+                var smsResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                    new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
+                smsResponse.StatusCode.Should().Be(HttpStatusCode.Accepted);
+            }
+
+            public async Task RequestSubsequentSMSCode()
+            {
+                subsequentSmsResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                    new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
+            }
+
+            public Task WaitForSMS()
+            {
+                //todo note: because we don't have an easy way to receive SMS through Twilio, just grab it from TableStorage here and lean on other Twilio tests for integrations
+                smsCodeFromTwilio = "todo";
+                return Task.CompletedTask;
+            }
+
+            public async Task SubmitVerificationCode()
+            {
+                //todo get the code and include it in the request
+                submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
+                    new StringContent(JsonConvert.SerializeObject(new { code = smsCodeFromTwilio }), Encoding.UTF8, "application/json"));
+            }
+
+            public void CheckPhoneIsVerified()
+            {
+                //todo figure out how to check the status of claim
+                submissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            }
+
+            public async Task SubmitInvalidVerificationCode()
+            {
+                submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
+                    new StringContent(JsonConvert.SerializeObject(new { code = invalidSmsCodeFromTwilio }), Encoding.UTF8, "application/json"));
+            }
+
+            public async Task SubmitExpiredVerificationCode()
+            {
+                var submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission", null);
+                submissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            }
+
+            public void CheckPhoneIsNotVerified()
+            {
+                //todo figure out how to check the status of claim
+                submissionResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+            }
+
+            public async Task RequestSMSCodeWithUnverifiedEmail()
+            {
+                unverifiedemailphoneResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                    new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
+            }
+
+            public async Task RequestSMSCodeWithInvalidData()
+            {
+                smsInvalidResponse =
+                    await this.ApolloClient.PostAsync("/phone-verification", new StringContent(JsonConvert.SerializeObject(new { phonenumber = "" }), Encoding.UTF8, "application/json"));
+            }
+
+            public async Task CheckInvalidResponse()
+            {
+                smsInvalidResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+            }
+
+            public void CheckPhoneIsAlreadyBeingProcessed()
+            {
+                subsequentSmsResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            }
+
+            public async Task CheckPhoneIsNotVerifiedWithUnverifiedEmail()
+            {
+                unverifiedemailphoneResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            }           
         }
     }
 }

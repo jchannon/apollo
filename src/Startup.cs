@@ -9,19 +9,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Apollo
 {
+    using Apollo.Features.Verification.Phone.PhoneVerification;
     using Apollo.Persistence;
     using Apollo.Persistence.AzureStorage;
 
     public class Startup
     {
-        public IConfiguration Configuration { get; }
-
         private readonly AppSettings appSettings = new AppSettings();
 
         public Startup(IConfiguration configuration)
         {
-            this.Configuration = configuration;
-            this.Configuration.Bind(this.appSettings);
+            configuration.Bind(this.appSettings);
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -30,6 +28,12 @@ namespace Apollo
                 new VerificationRequestRepository(this.appSettings.Db.DataConnString));
 
             services.AddSingleton(this.appSettings);
+
+            services.AddSingleton(s => new Handler(new ICommandHandler[]
+            {
+                new PhoneVerificationCommandHandler()
+            }));
+
             services.AddSingleton<MailSender>();
             services.AddSingleton<VerificationCodeManager>();
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
@@ -53,7 +57,6 @@ namespace Apollo
         public void Configure(IApplicationBuilder app)
         {
             app.UseAuthentication();
-
             app.UseCarter();
         }
     }

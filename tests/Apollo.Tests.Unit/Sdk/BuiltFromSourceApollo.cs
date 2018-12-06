@@ -11,6 +11,8 @@ using Xunit;
 
 namespace Apollo.Tests.Unit.Sdk
 {
+    using System.Runtime.InteropServices;
+
     public class BuiltFromSourceApollo : IAsyncLifetime
     {
         private readonly Uri apolloUri;
@@ -40,7 +42,7 @@ namespace Apollo.Tests.Unit.Sdk
                     "dotnet",
                     arguments)
                 {
-                    UseShellExecute = !Environment.OSVersion.Platform.Equals(PlatformID.Unix)
+                    UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 });
 
             async Task<bool> WaitUntilAvailable(CancellationToken token)
