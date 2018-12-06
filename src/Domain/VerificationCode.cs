@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace Apollo
+namespace Apollo.Domain
 {
     public class VerificationCode : IEquatable<VerificationCode>
     {

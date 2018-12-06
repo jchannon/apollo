@@ -1,4 +1,6 @@
-﻿using Apollo.Settings;
+﻿using Apollo.Persistence;
+using Apollo.Persistence.AzureStorage;
+using Apollo.Settings;
 using Apollo.Swagger;
 using Carter;
 using IdentityServer4.AccessTokenValidation;
@@ -26,6 +28,11 @@ namespace Apollo
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCarter();
+
+            services.AddSingleton<IVerificationRequestRepository>(x =>
+                new VerificationRequestRepository(_appSettings.Db.DataConnString));
+
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
@@ -39,8 +46,6 @@ namespace Apollo
                         options.CacheDuration = _appSettings.IdentityServer.CacheTimeout;
                     }
                 });
-
-            services.AddCarter();
 
 #if DEBUG
             services.AddSwaggerGen(opt =>
