@@ -1,8 +1,9 @@
-﻿using Apollo.Domain;
-using System;
+﻿using System;
 
 namespace Apollo.Persistence
 {
+    using Apollo.Features.Verification;
+
     public class VerificationRequestDto
     {
         public string Id { get; set; }

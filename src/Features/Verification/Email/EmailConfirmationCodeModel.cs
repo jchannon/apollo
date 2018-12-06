@@ -3,7 +3,7 @@
     /// <summary>
     /// Email confirmation request details
     /// </summary>
-    public class EmailConfirmationModel
+    public class EmailConfirmationCodeModel
     {
         /// <summary>
         /// Email confirmation code

@@ -1,47 +1,48 @@
-﻿using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Mail;
-using System.Threading.Tasks;
-using Apollo.Settings;
-using Carter;
-using Carter.ModelBinding;
-using Carter.Response;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
-
-namespace Apollo.Features.Verification.Email
+﻿namespace Apollo.Features.Verification.Email
 {
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Threading.Tasks;
+    using Carter;
+    using Carter.ModelBinding;
+    using Carter.Response;
+    using Microsoft.AspNetCore.Http;
+    using Newtonsoft.Json.Linq;
+    
     public class EmailVerificationModule : CarterModule
     {
         private readonly VerificationCodeManager verificationCodeManager;
         private readonly MailSender sender;
-        private readonly HttpClient client = new HttpClient();
+        private readonly HttpClient client;
 
         public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender) : base("/emailverification")
         {
             this.verificationCodeManager = verificationCodeManager;
             this.sender = sender;
+            this.client = new HttpClient();
+            
             this.RequiresAuthentication();
 
             this.Post("/", this.SendConfirmationCode);
 
-            this.Post("/confirmation", async context =>
+            this.Post("/confirmation", this.ConfirmVerificationCode);
+        }
+
+        private async Task ConfirmVerificationCode(HttpContext context)
+        {
+            var result = context.Request.BindAndValidate<EmailConfirmationCodeModel>();
+
+            if (!result.ValidationResult.IsValid)
             {
-                var result = context.Request.BindAndValidate<EmailConfirmationModel>();
+                context.Response.StatusCode = 422;
+                await context.Response.Negotiate(result.ValidationResult.GetFormattedErrors());
+                return;
+            }
 
-                if (!result.ValidationResult.IsValid)
-                {
-                    context.Response.StatusCode = 422;
-                    await context.Response.Negotiate(result.ValidationResult.GetFormattedErrors());
-                    return;
-                }
+            var userId = context.User.GetUserId();
 
-                var userId = context.User.GetUserId();
-
-                await verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(result.Data.Code));
-                context.Response.StatusCode = 400;
-            });
+            await this.verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(result.Data.Code));
+            context.Response.StatusCode = 400;
         }
 
         private async Task SendConfirmationCode(HttpContext context)
@@ -50,7 +51,7 @@ namespace Apollo.Features.Verification.Email
 
             await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, async code =>
             {
-                this.sender.SendConfirmationCode(await GetUserEmail(context), code);
+                this.sender.SendConfirmationCode(await this.GetUserEmail(context), code);
             });
             context.Response.StatusCode = 202;
         }

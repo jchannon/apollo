@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Apollo.Features.Verification;
 using Apollo.Features.Verification.Email;
 using Apollo.Settings;
@@ -8,7 +6,6 @@ using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
 namespace Apollo
 {
@@ -19,34 +16,34 @@ namespace Apollo
     {
         public IConfiguration Configuration { get; }
 
-        private readonly AppSettings _appSettings = new AppSettings();
+        private readonly AppSettings appSettings = new AppSettings();
 
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
-            Configuration.Bind(_appSettings);
+            this.Configuration = configuration;
+            this.Configuration.Bind(this.appSettings);
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IVerificationRequestRepository>(x =>
-                new VerificationRequestRepository(_appSettings.Db.DataConnString));
+                new VerificationRequestRepository(this.appSettings.Db.DataConnString));
 
-            services.AddSingleton(_appSettings);
+            services.AddSingleton(this.appSettings);
             services.AddSingleton<MailSender>();
             services.AddSingleton<VerificationCodeManager>();
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
-                    options.Authority = _appSettings.IdentityServer.Authority;
-                    options.ApiName = _appSettings.IdentityServer.ApiName;
-                    options.ApiSecret = _appSettings.IdentityServer.ApiSecret;
+                    options.Authority = this.appSettings.IdentityServer.Authority;
+                    options.ApiName = this.appSettings.IdentityServer.ApiName;
+                    options.ApiSecret = this.appSettings.IdentityServer.ApiSecret;
                     options.RequireHttpsMetadata = false;
 
-                    if (_appSettings.IdentityServer.CacheTimeout.TotalMilliseconds > 0)
+                    if (this.appSettings.IdentityServer.CacheTimeout.TotalMilliseconds > 0)
                     {
                         options.EnableCaching = true;
-                        options.CacheDuration = _appSettings.IdentityServer.CacheTimeout;
+                        options.CacheDuration = this.appSettings.IdentityServer.CacheTimeout;
                     }
                 });
 
