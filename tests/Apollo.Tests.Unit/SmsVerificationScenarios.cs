@@ -144,15 +144,13 @@ namespace Apollo.Tests.Unit
 
         private class Driver : IdentityTestDriver
         {
-            private readonly ApolloIntegrationFixture services;
-
-            private readonly string invalidSmsCodeFromTwilio = "";
-
             private string smsCodeFromTwilio;
 
-            private HttpResponseMessage smsInvalidResponse;
+            private string invalidSmsCodeFromTwilio = "";
 
             private HttpResponseMessage submissionResponse;
+
+            private HttpResponseMessage smsInvalidResponse;
 
             private HttpResponseMessage subsequentSmsResponse;
 
@@ -160,18 +158,19 @@ namespace Apollo.Tests.Unit
 
             public Driver(ApolloIntegrationFixture services) : base(services)
             {
+                
             }
 
             public async Task RequestSMSCode()
             {
-                var smsResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                var smsResponse = await this.Services.ApolloClient.PostAsync("/phone-verification",
                     new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
                 smsResponse.StatusCode.Should().Be(HttpStatusCode.Accepted);
             }
 
             public async Task RequestSubsequentSMSCode()
             {
-                this.subsequentSmsResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                subsequentSmsResponse = await this.Services.ApolloClient.PostAsync("/phone-verification",
                     new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
             }
 
@@ -185,8 +184,8 @@ namespace Apollo.Tests.Unit
             public async Task SubmitVerificationCode()
             {
                 //todo get the code and include it in the request
-                this.submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
-                    new StringContent(JsonConvert.SerializeObject(new { code = this.smsCodeFromTwilio }), Encoding.UTF8, "application/json"));
+                submissionResponse = await this.Services.ApolloClient.PostAsync("/phone-verification-submission",
+                    new StringContent(JsonConvert.SerializeObject(new { code = smsCodeFromTwilio }), Encoding.UTF8, "application/json"));
             }
 
             public void CheckPhoneIsVerified()
@@ -197,13 +196,13 @@ namespace Apollo.Tests.Unit
 
             public async Task SubmitInvalidVerificationCode()
             {
-                this.submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
-                    new StringContent(JsonConvert.SerializeObject(new { code = this.invalidSmsCodeFromTwilio }), Encoding.UTF8, "application/json"));
+                submissionResponse = await this.Services.ApolloClient.PostAsync("/phone-verification-submission",
+                    new StringContent(JsonConvert.SerializeObject(new { code = invalidSmsCodeFromTwilio }), Encoding.UTF8, "application/json"));
             }
 
             public async Task SubmitExpiredVerificationCode()
             {
-                var submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission", null);
+                var submissionResponse = await this.Services.ApolloClient.PostAsync("/phone-verification-submission", null);
                 submissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             }
 
@@ -215,15 +214,14 @@ namespace Apollo.Tests.Unit
 
             public async Task RequestSMSCodeWithUnverifiedEmail()
             {
-                this.unverifiedemailphoneResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                unverifiedemailphoneResponse = await this.Services.ApolloClient.PostAsync("/phone-verification",
                     new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
             }
 
             public async Task RequestSMSCodeWithInvalidData()
             {
-                this.smsInvalidResponse =
-                    await this.ApolloClient.PostAsync("/phone-verification",
-                        new StringContent(JsonConvert.SerializeObject(new { phonenumber = "" }), Encoding.UTF8, "application/json"));
+                smsInvalidResponse =
+                    await this.Services.ApolloClient.PostAsync("/phone-verification", new StringContent(JsonConvert.SerializeObject(new { phonenumber = "" }), Encoding.UTF8, "application/json"));
             }
 
             public async Task CheckInvalidResponse()

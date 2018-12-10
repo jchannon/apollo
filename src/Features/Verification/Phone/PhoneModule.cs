@@ -11,7 +11,7 @@
     {
         public PhoneModule(Handler handler)
         {
-            //this.RequiresAuthentication();
+            this.RequiresAuthentication();
 
             this.Post("/phone-verification", async context =>
             {

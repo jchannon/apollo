@@ -1,4 +1,4 @@
-﻿namespace Apollo.Tests.Unit.Sdk
+namespace Apollo.Tests.Unit.Sdk
 {
     using System;
     using System.ComponentModel;

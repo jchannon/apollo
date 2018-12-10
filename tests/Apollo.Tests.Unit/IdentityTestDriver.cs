@@ -16,6 +16,10 @@ namespace Apollo.Tests.Unit
     {
         private readonly HttpClient ironcladClient;
 
+        protected ApolloIntegrationFixture Services { get; }
+
+        public User CurrentUser { get; set; }
+
         protected IdentityTestDriver(ApolloIntegrationFixture services)
         {
             this.Services = services ?? throw new ArgumentNullException(nameof(services));
@@ -23,11 +27,6 @@ namespace Apollo.Tests.Unit
             this.ironcladClient = new HttpClient(services.IdentityAuthorityAdminHandler)
             {
                 BaseAddress = services.IdentityAuthority
-            };
-
-            this.ApolloClient = new HttpClient
-            {
-                BaseAddress = services.ApolloEndpoint
             };
 
             var internet = new Internet();
@@ -43,13 +42,6 @@ namespace Apollo.Tests.Unit
                 PhoneNumber = phoneNumbers.PhoneNumber()
             };
         }
-        
-        public User CurrentUser { get; set; }
-
-        protected ApolloIntegrationFixture Services { get; }
-
-        protected HttpClient ApolloClient { get; }
-
 
         public async Task RegisterUser(bool emailVerified = false, bool phoneVerified = false)
         {
@@ -81,7 +73,7 @@ namespace Apollo.Tests.Unit
 
             // assert
             authorizeResponse.IsError.Should().BeFalse();
-            this.ApolloClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authorizeResponse.AccessToken);
+            this.Services.ApolloClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authorizeResponse.AccessToken);
         }
     }
 }

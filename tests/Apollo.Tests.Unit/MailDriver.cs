@@ -30,7 +30,7 @@ namespace Apollo.Tests.Unit
 
         public async Task<HttpResponseMessage> SendRequestToVerifyEmailAddress()
         {
-            return await this.ApolloClient.PostAsync("/emailVerification", null);
+            return await this.Services.ApolloClient.PostAsync("/emailVerification", null);
         }
 
         public async Task<string> WaitForEmailWithConfirmationCode()
@@ -68,7 +68,7 @@ namespace Apollo.Tests.Unit
                 code
             };
 
-            return await this.ApolloClient.PostAsJsonAsync("/emailVerification/confirmation", request);
+            return await this.Services.ApolloClient.PostAsJsonAsync("/emailVerification/confirmation", request);
         }
 
         public async Task WaitForEmailToBeVerified()

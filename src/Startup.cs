@@ -30,7 +30,7 @@ namespace Apollo
 
             services.AddSingleton(s => new Handler(new ICommandHandler[]
             {
-                new PhoneVerificationCommandHandler()
+                new PhoneVerificationCommandHandler(s.GetRequiredService<IVerificationRequestRepository>())
             }));
 
             services.AddSingleton<MailSender>();

@@ -90,10 +90,7 @@
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    if (ip.ToString().StartsWith("192")) // network hack because it's late and I cba
-                    {
-                        return ip.ToString();
-                    }
+                    return ip.ToString();
                 }
             }
 
