@@ -1,8 +1,8 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-namespace Apollo.Persistence
+﻿namespace Apollo.Persistence
 {
+    using System;
+    using System.Runtime.Serialization;
+
     public class EntityNotFoundException : Exception
     {
         public EntityNotFoundException()
@@ -11,8 +11,8 @@ namespace Apollo.Persistence
 
         public EntityNotFoundException(string partitionKey, string rowKey, string message = null) : base(message ?? "Entity not found")
         {
-            PartitionKey = partitionKey;
-            RowKey = rowKey;
+            this.PartitionKey = partitionKey;
+            this.RowKey = rowKey;
         }
 
         public EntityNotFoundException(string message, Exception innerException) : base(message, innerException)
@@ -24,6 +24,7 @@ namespace Apollo.Persistence
         }
 
         public string PartitionKey { get; set; }
+
         public string RowKey { get; set; }
     }
 }

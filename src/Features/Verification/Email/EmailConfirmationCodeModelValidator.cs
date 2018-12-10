@@ -1,7 +1,7 @@
-﻿using FluentValidation;
-
-namespace Apollo.Features.Verification.Email
+﻿namespace Apollo.Features.Verification.Email
 {
+    using FluentValidation;
+
     public class EmailConfirmationCodeModelValidator : AbstractValidator<EmailConfirmationCodeModel>
     {
         public EmailConfirmationCodeModelValidator()

@@ -5,7 +5,7 @@ namespace Apollo.Tests.Unit.Sdk
 {
     using System;
     using Npgsql;
-    
+
     public class PostgresContainer : DockerContainer
     {
         public PostgresContainer(NpgsqlConnectionStringBuilder connectionStringBuilder)
@@ -32,7 +32,8 @@ namespace Apollo.Tests.Unit.Sdk
                 {
                     new DockerContainerPortBinding
                     {
-                        GuestTcpPort = 5432, HostTcpPort = connectionStringBuilder.Port
+                        GuestTcpPort = 5432,
+                        HostTcpPort = connectionStringBuilder.Port
                     }
                 },
                 MaximumWaitUntilAvailableAttempts = 5,

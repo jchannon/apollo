@@ -23,7 +23,7 @@ namespace Apollo.Tests.Unit
         [Scenario]
         public void Verifying_an_invalid_phone_number()
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(true); });
 
             "And I can login as the user".x(async () => { await this.driver.Login(); });
 
@@ -35,7 +35,7 @@ namespace Apollo.Tests.Unit
         [Scenario]
         public void Verifying_a_phone_number()
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(true); });
 
             "And I can login as the user".x(async () => { await this.driver.Login(); });
 
@@ -51,7 +51,7 @@ namespace Apollo.Tests.Unit
         [Scenario]
         public void Verifying_a_phone_number_when_already_asked_for_verification()
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(true); });
 
             "And I can login as the user".x(async () => { await this.driver.Login(); });
 
@@ -65,7 +65,7 @@ namespace Apollo.Tests.Unit
         [Scenario]
         public void Verifying_phone_number_without_requesting_a_code()
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(emailVerified:true); });
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.driver.RegisterUser(true); });
 
             "And I can login as the user".x(async () => { await this.driver.Login(); });
 
@@ -145,13 +145,14 @@ namespace Apollo.Tests.Unit
         private class Driver : IdentityTestDriver
         {
             private readonly ApolloIntegrationFixture services;
+
+            private readonly string invalidSmsCodeFromTwilio = "";
+
             private string smsCodeFromTwilio;
 
-            private string invalidSmsCodeFromTwilio = "";
+            private HttpResponseMessage smsInvalidResponse;
 
             private HttpResponseMessage submissionResponse;
-
-            private HttpResponseMessage smsInvalidResponse;
 
             private HttpResponseMessage subsequentSmsResponse;
 
@@ -160,7 +161,7 @@ namespace Apollo.Tests.Unit
             public Driver(ApolloIntegrationFixture services) : base(services)
             {
             }
-            
+
             public async Task RequestSMSCode()
             {
                 var smsResponse = await this.ApolloClient.PostAsync("/phone-verification",
@@ -170,34 +171,34 @@ namespace Apollo.Tests.Unit
 
             public async Task RequestSubsequentSMSCode()
             {
-                subsequentSmsResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                this.subsequentSmsResponse = await this.ApolloClient.PostAsync("/phone-verification",
                     new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
             }
 
             public Task WaitForSMS()
             {
                 //todo note: because we don't have an easy way to receive SMS through Twilio, just grab it from TableStorage here and lean on other Twilio tests for integrations
-                smsCodeFromTwilio = "todo";
+                this.smsCodeFromTwilio = "todo";
                 return Task.CompletedTask;
             }
 
             public async Task SubmitVerificationCode()
             {
                 //todo get the code and include it in the request
-                submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
-                    new StringContent(JsonConvert.SerializeObject(new { code = smsCodeFromTwilio }), Encoding.UTF8, "application/json"));
+                this.submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
+                    new StringContent(JsonConvert.SerializeObject(new { code = this.smsCodeFromTwilio }), Encoding.UTF8, "application/json"));
             }
 
             public void CheckPhoneIsVerified()
             {
                 //todo figure out how to check the status of claim
-                submissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+                this.submissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
             }
 
             public async Task SubmitInvalidVerificationCode()
             {
-                submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
-                    new StringContent(JsonConvert.SerializeObject(new { code = invalidSmsCodeFromTwilio }), Encoding.UTF8, "application/json"));
+                this.submissionResponse = await this.ApolloClient.PostAsync("/phone-verification-submission",
+                    new StringContent(JsonConvert.SerializeObject(new { code = this.invalidSmsCodeFromTwilio }), Encoding.UTF8, "application/json"));
             }
 
             public async Task SubmitExpiredVerificationCode()
@@ -209,35 +210,36 @@ namespace Apollo.Tests.Unit
             public void CheckPhoneIsNotVerified()
             {
                 //todo figure out how to check the status of claim
-                submissionResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+                this.submissionResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
             }
 
             public async Task RequestSMSCodeWithUnverifiedEmail()
             {
-                unverifiedemailphoneResponse = await this.ApolloClient.PostAsync("/phone-verification",
+                this.unverifiedemailphoneResponse = await this.ApolloClient.PostAsync("/phone-verification",
                     new StringContent(JsonConvert.SerializeObject(new { phonenumber = "123" }), Encoding.UTF8, "application/json"));
             }
 
             public async Task RequestSMSCodeWithInvalidData()
             {
-                smsInvalidResponse =
-                    await this.ApolloClient.PostAsync("/phone-verification", new StringContent(JsonConvert.SerializeObject(new { phonenumber = "" }), Encoding.UTF8, "application/json"));
+                this.smsInvalidResponse =
+                    await this.ApolloClient.PostAsync("/phone-verification",
+                        new StringContent(JsonConvert.SerializeObject(new { phonenumber = "" }), Encoding.UTF8, "application/json"));
             }
 
             public async Task CheckInvalidResponse()
             {
-                smsInvalidResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+                this.smsInvalidResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
             }
 
             public void CheckPhoneIsAlreadyBeingProcessed()
             {
-                subsequentSmsResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+                this.subsequentSmsResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             }
 
             public async Task CheckPhoneIsNotVerifiedWithUnverifiedEmail()
             {
-                unverifiedemailphoneResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            }           
+                this.unverifiedemailphoneResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            }
         }
     }
 }

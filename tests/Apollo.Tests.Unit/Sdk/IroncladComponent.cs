@@ -1,44 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Net;
-using System.Net.Http;
-using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Ironclad.Tests.Sdk;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
-using Npgsql;
-using Xunit;
-
-namespace Apollo.Tests.Unit.Sdk
+﻿namespace Apollo.Tests.Unit.Sdk
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Net;
+    using System.Net.Http;
+    using System.Net.Sockets;
+    using System.Runtime.InteropServices;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Ironclad.Tests.Sdk;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using Newtonsoft.Json.Serialization;
+    using Npgsql;
+    using Xunit;
+
     public class IroncladComponent : IAsyncLifetime
     {
         private readonly string apiIdentifier;
 
-        private readonly string clientId;
-
         private readonly Uri apolloEndpoint;
+
+        private readonly AuthenticationFixture authenticationFixture;
+
+        private readonly string clientId;
 
         private readonly PostgresContainer postgresContainer;
 
-        private IroncladContainer ironcladContainer;
-
-        private readonly AuthenticationFixture authenticationFixture;
+        private readonly IroncladContainer ironcladContainer;
 
         public IroncladComponent(string apiIdentifier, string clientId, Uri apolloEndpoint)
         {
             this.apiIdentifier = apiIdentifier;
             this.clientId = clientId;
             this.apolloEndpoint = apolloEndpoint;
+            var registryCredentials = new NetworkCredential(
+                Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
+                Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
+            );
+            var googleCredentials = new NetworkCredential(
+                Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"),
+                Environment.GetEnvironmentVariable("GOOGLE_SECRET")
+            );
+
             var connectionStringBuilder =
-                new NpgsqlConnectionStringBuilder($"Host=localhost;Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}");
+                new NpgsqlConnectionStringBuilder($"Host={ResolveHost()};Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}");
 
             this.postgresContainer = new PostgresContainer(connectionStringBuilder);
+            this.ironcladContainer = new IroncladContainer(this.Endpoint, connectionStringBuilder, registryCredentials, googleCredentials);
 
             this.authenticationFixture = new AuthenticationFixture();
         }
@@ -50,19 +59,6 @@ namespace Apollo.Tests.Unit.Sdk
         public async Task InitializeAsync()
         {
             await this.postgresContainer.InitializeAsync().ConfigureAwait(false);
-
-            var registryCredentials = new NetworkCredential(
-                Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
-                Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
-            );
-            var googleCredentials = new NetworkCredential(
-                Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"),
-                Environment.GetEnvironmentVariable("GOOGLE_SECRET")
-            );
-
-            var ironCladConnectionString = new NpgsqlConnectionStringBuilder($"Host={await this.postgresContainer.GetContainerIp()};Database=ironclad;Username=postgres;Password=postgres;Port=5432");
-
-            this.ironcladContainer = new IroncladContainer(Endpoint, ironCladConnectionString, registryCredentials, googleCredentials);
 
             await this.ironcladContainer.InitializeAsync().ConfigureAwait(false);
 
@@ -94,7 +90,10 @@ namespace Apollo.Tests.Unit.Sdk
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    return ip.ToString();
+                    if (ip.ToString().StartsWith("192")) // network hack because it's late and I cba
+                    {
+                        return ip.ToString();
+                    }
                 }
             }
 
@@ -118,14 +117,27 @@ namespace Apollo.Tests.Unit.Sdk
                     new
                     {
                         Name = this.apiIdentifier,
-                        UserClaims = new List<string> { "phone_number", "phone_number_verified", "email", "email_verified" }
+                        UserClaims = new List<string>
+                        {
+                            "phone_number",
+                            "phone_number_verified",
+                            "email",
+                            "email_verified"
+                        }
                     }
                 },
-                UserClaims = new List<string> { "phone_number", "phone_number_verified", "email", "email_verified" },
+                UserClaims = new List<string>
+                {
+                    "phone_number",
+                    "phone_number_verified",
+                    "email",
+                    "email_verified"
+                },
                 Enabled = true
             };
 
-            await httpClient.PostAsync("/api/apiresources", new StringContent(JsonConvert.SerializeObject(apiResource, GetJsonSerializerSettings()), Encoding.UTF8, "application/json"));
+            await httpClient.PostAsync("/api/apiresources",
+                new StringContent(JsonConvert.SerializeObject(apiResource, GetJsonSerializerSettings()), Encoding.UTF8, "application/json"));
 
             var client = new
             {
@@ -133,7 +145,12 @@ namespace Apollo.Tests.Unit.Sdk
                 Name = this.clientId,
                 AllowedCorsOrigins = new List<string> { this.apolloEndpoint.ToString() },
                 RedirectUris = new List<string> { $"{this.apolloEndpoint}/redirect" },
-                AllowedScopes = new List<string> { "openid", "profile", this.apiIdentifier },
+                AllowedScopes = new List<string>
+                {
+                    "openid",
+                    "profile",
+                    this.apiIdentifier
+                },
                 AllowAccessTokensViaBrowser = true,
                 AllowedGrantTypes = new List<string> { "implicit" },
                 RequireConsent = false,
@@ -149,7 +166,7 @@ namespace Apollo.Tests.Unit.Sdk
             var settings = new JsonSerializerSettings
             {
                 ContractResolver = new DefaultContractResolver { NamingStrategy = new SnakeCaseNamingStrategy() },
-                NullValueHandling = NullValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
             };
 
             settings.Converters.Add(new StringEnumConverter());

@@ -8,7 +8,7 @@ namespace Apollo.Features.Verification
     public class VerificationCode : IEquatable<VerificationCode>
     {
         private const int FixedLength = 4;
-        
+
         private readonly string value;
 
         public VerificationCode(string value)
@@ -17,7 +17,7 @@ namespace Apollo.Features.Verification
             {
                 throw new ArgumentNullException(nameof(value));
             }
-            
+
             if (value.Length != FixedLength || !value.All(char.IsDigit))
             {
                 throw new ArgumentException($"The value of a verification code must consists of {FixedLength} digits.", nameof(value));
@@ -42,7 +42,7 @@ namespace Apollo.Features.Verification
                 return new VerificationCode(value.PadLeft(FixedLength, '0'));
             }
         }
-
+        
         public bool Equals(VerificationCode other) => other != null && other.value == this.value;
         public override bool Equals(object obj) => obj is VerificationCode other && this.Equals(other);
         public override int GetHashCode() => this.value.GetHashCode();

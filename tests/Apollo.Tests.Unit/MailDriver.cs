@@ -1,8 +1,6 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Text;
-
 namespace Apollo.Tests.Unit
 {
     using System;
@@ -12,36 +10,35 @@ namespace Apollo.Tests.Unit
     using System.Net.Http;
     using System.Net.Mail;
     using System.Threading.Tasks;
-    using Sdk;
+    using Apollo.Tests.Unit.Sdk;
     using Bogus.DataSets;
-    using Ironclad.Tests.Sdk;
     using Newtonsoft.Json;
-    
+
     public class MailDriver : IdentityTestDriver
     {
-        public MailDriver(ApolloIntegrationFixture services) : base(services) 
+        public MailDriver(ApolloIntegrationFixture services) : base(services)
         {
             this.Services = services ?? throw new ArgumentNullException(nameof(services));
-            
+
             var internet = new Internet();
             this.FromEmailAddress = new MailAddress(internet.Email());
         }
-        
+
         public ApolloIntegrationFixture Services { get; }
-        
+
         public MailAddress FromEmailAddress { get; }
 
         public async Task<HttpResponseMessage> SendRequestToVerifyEmailAddress()
         {
             return await this.ApolloClient.PostAsync("/emailVerification", null);
         }
-        
+
         public async Task<string> WaitForEmailWithConfirmationCode()
         {
             var timeBetweenReceiveAttempts = TimeSpan.FromMilliseconds(100);
             using (var client = new HttpClient())
             {
-                MailHogMessage message = null; 
+                MailHogMessage message = null;
                 while (message == null)
                 {
                     var response = await client.GetAsync(
@@ -51,10 +48,9 @@ namespace Apollo.Tests.Unit
                         }.Uri);
 
                     var messages = await MailHogMessage.FromResponse(response.EnsureSuccessStatusCode());
-                    
+
                     //TODO: Improve the predicate to match on more specific attributes. 
-                    message = messages.SingleOrDefault(m => m.To.Any(to => to.Equals(new MailAddress(this.CurrentUser.Email))));
-                    
+                    message = messages.OrderByDescending(m => m.Created).FirstOrDefault(m => m.To.Any(to => to.Equals(new MailAddress(this.CurrentUser.Email))));
                     if (message == null)
                     {
                         await Task.Delay(timeBetweenReceiveAttempts);
@@ -65,22 +61,39 @@ namespace Apollo.Tests.Unit
             }
         }
 
+        public async Task<HttpResponseMessage> SubmitVerificationCode(string code)
+        {
+            var request = new
+            {
+                code
+            };
+
+            return await this.ApolloClient.PostAsJsonAsync("/emailVerification/confirmation", request);
+        }
+
+        public async Task WaitForEmailToBeVerified()
+        {
+            throw new Exception();
+        }
+
         private class MailHogMessage
         {
             public string ID { get; private set; }
-            
+
             public MailAddress From { get; private set; }
-            
+
             public MailAddress[] To { get; private set; }
-            
+
             public string Body { get; private set; }
+            
+            public DateTime? Created { get; private set; }
 
             public static async Task<MailHogMessage[]> FromResponse(HttpResponseMessage response)
             {
                 var messages = new List<MailHogMessage>();
-                using(var stream = await response.Content.ReadAsStreamAsync())
-                using(var reader = new StreamReader(stream))
-                using(var json = new JsonTextReader(reader))
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var reader = new StreamReader(stream))
+                using (var json = new JsonTextReader(reader))
                 {
                     while (await json.ReadAsync() && json.TokenType != JsonToken.EndArray)
                     {
@@ -111,7 +124,7 @@ namespace Apollo.Tests.Unit
                                 break;
                         }
                     }
-                    
+
                     return body;
                 }
 
@@ -122,7 +135,7 @@ namespace Apollo.Tests.Unit
                     var mailbox = string.Empty;
                     var domain = string.Empty;
                     while (await json.ReadAsync() && json.TokenType != JsonToken.EndObject)
-                    {                        
+                    {
                         switch (json.Value)
                         {
                             case "Mailbox":
@@ -144,9 +157,9 @@ namespace Apollo.Tests.Unit
                 }
 
                 var message = new MailHogMessage();
-                
+
                 await json.ReadAsync();
-                
+
                 while (await json.ReadAsync() && json.TokenType != JsonToken.EndObject)
                 {
                     switch (json.Value)
@@ -164,11 +177,14 @@ namespace Apollo.Tests.Unit
                                 addresses.Add(await ReadMailAddress());
                             }
 
-                            message.To = addresses.ToArray(); 
+                            message.To = addresses.ToArray();
 
                             break;
                         case "Content":
                             message.Body = await ReadBody();
+                            break;
+                        case "Created":
+                            message.Created = await json.ReadAsDateTimeAsync();
                             break;
                         default:
                             await json.SkipAsync();
@@ -178,21 +194,7 @@ namespace Apollo.Tests.Unit
 
                 return message;
             }
-        }
 
-        public async Task<HttpResponseMessage> SubmitVerificationCode(string code)
-        {
-            var request = new
-            {
-                code
-            };
-
-            return await this.ApolloClient.PostAsJsonAsync("/emailVerification/confirmation", request);
-        }
-
-        public async Task WaitForEmailToBeVerified()
-        {
-            throw new Exception();
         }
     }
 }

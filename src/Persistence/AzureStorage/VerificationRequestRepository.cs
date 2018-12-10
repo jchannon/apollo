@@ -1,65 +1,75 @@
-﻿using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
-
-namespace Apollo.Persistence.AzureStorage
+﻿namespace Apollo.Persistence.AzureStorage
 {
+    using System;
+    using System.Threading.Tasks;
+    using Apollo.Features.Verification;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Table;
+
     public class VerificationRequestRepository : IVerificationRequestRepository
     {
-        private readonly CloudStorageAccount _cloudStorageAccount;
         private const string TableName = "VerificationRequests";
+
+        private readonly CloudStorageAccount cloudStorageAccount;
 
         public VerificationRequestRepository(
             string connectionString)
         {
-            _cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
+            this.cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
         }
 
-        public async Task<VerificationRequestDto> AddAsync(VerificationRequestDto dto)
+        public async Task StoreNewVerificationRequest(VerificationRequest verificationRequest)
         {
-            var entity = new VerificationRequestEntity(dto);
+            var entity = new VerificationRequestEntity(verificationRequest);
 
-            var table = await GetTableAsync();
+            var table = await this.GetTableAsync();
 
-            await table.ExecuteAsync(TableOperation.Insert(entity));
-
-            return entity.ToDto();
+            await table.ExecuteAsync(TableOperation.InsertOrReplace(entity));
         }
 
-        public async Task<VerificationRequestDto> GetAsync(string lykkeUserId, string requestId)
+        public async Task<VerificationRequest> GetVerificationRequest(VerificationType type, string userId)
         {
-            var table = await GetTableAsync();
+            var table = await this.GetTableAsync();
 
-            var tableResult =
-                await table.ExecuteAsync(TableOperation.Retrieve<VerificationRequestEntity>(lykkeUserId, requestId));
+            var tableResult = await table.ExecuteAsync(TableOperation.Retrieve<VerificationRequestEntity>(userId, type.ToString()));
 
-            return ((VerificationRequestEntity) tableResult.Result)?.ToDto();
-        }
-
-        public async Task UpdateAsync(VerificationRequestDto dto)
-        {
-            var table = await GetTableAsync();
-
-            var existingEntity =
-                await table.ExecuteAsync(TableOperation.Retrieve<VerificationRequestEntity>(dto.LykkeUserId, dto.Id));
-
-            if (existingEntity == null)
-                throw new EntityNotFoundException(dto.LykkeUserId, dto.Id);
-
-            var entity = new VerificationRequestEntity(dto)
+            if (tableResult.HttpStatusCode != 200)
             {
-                ETag = existingEntity.Etag
+                return null;
+            }
+
+            var result = (VerificationRequestEntity)tableResult.Result;
+
+            return new VerificationRequest(result.UserId, Enum.Parse<VerificationType>(result.VerificationType),
+                (VerificationRequestStatus)result.Status, result.ExpirationDate, new VerificationCode(result.Code), result.Attempts);
+        }
+
+        public async Task UpdateAttemptedRequest(VerificationRequest storedCodeRequest)
+        {
+            var table = await this.GetTableAsync();
+
+            var existingEntry = await table.ExecuteAsync(TableOperation.Retrieve(storedCodeRequest.UserId, storedCodeRequest.VerificationType.ToString()));
+
+            if (existingEntry == null)
+            {
+                throw new EntityNotFoundException();
+            }
+
+            var entity = new VerificationRequestEntity(storedCodeRequest)
+            {
+                ETag = existingEntry.Etag
             };
 
-            await table.ExecuteAsync(TableOperation.Merge(entity));
+            await table.ExecuteAsync(TableOperation.Replace(entity));
         }
 
         private async Task<CloudTable> GetTableAsync()
         {
-            var cloudTableClient = _cloudStorageAccount.CreateCloudTableClient();
+            var cloudTableClient = this.cloudStorageAccount.CreateCloudTableClient();
 
             var cloudTable = cloudTableClient.GetTableReference(TableName);
 
+            //todo CreateIfNotExists is slow, move it out to startup.
             await cloudTable.CreateIfNotExistsAsync();
 
             return cloudTable;

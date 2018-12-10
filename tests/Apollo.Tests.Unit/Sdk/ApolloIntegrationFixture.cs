@@ -1,20 +1,28 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Net.Http;
-
 namespace Apollo.Tests.Unit.Sdk
 {
     using System;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Xunit;
 
     public class ApolloIntegrationFixture : IAsyncLifetime
     {
-        private readonly AzureStorageEmulatorContainer azureStorageEmulatorContainer;
-        private readonly MailHogContainer mailhogContainer;
-        private readonly IroncladComponent ironcladComponent;
+        public const string ApolloAuthApiIdentifier = "apollo";
+
+        public const string ApolloAuthClientId = "apollo";
+
+        public const string ApolloEndpointUri = "http://localhost:5006/status";
+
         private readonly IAsyncLifetime apolloInstance;
+
+        private readonly AzureStorageEmulatorContainer azureStorageEmulatorContainer;
+
+        private readonly IroncladComponent ironcladComponent;
+
+        private readonly MailHogContainer mailhogContainer;
 
         public ApolloIntegrationFixture()
         {
@@ -23,20 +31,17 @@ namespace Apollo.Tests.Unit.Sdk
 
             this.azureStorageEmulatorContainer = new AzureStorageEmulatorContainer();
             this.mailhogContainer = new MailHogContainer(this.SmtpServerEndpoint, this.SmtpServerHttpEndpoint);
-            this.ironcladComponent = new IroncladComponent(ApolloAuthApiIdentifier, ApolloAuthClientId, ApolloEndpoint);
-            this.apolloInstance = new BuiltFromSourceApollo(ApolloEndpoint, this.SmtpServerEndpoint);
+            this.ironcladComponent = new IroncladComponent(ApolloAuthApiIdentifier, ApolloAuthClientId, this.ApolloEndpoint);
+            this.apolloInstance = new BuiltFromSourceApollo(this.ApolloEndpoint, this.SmtpServerEndpoint);
         }
 
         public Uri SmtpServerEndpoint { get; }
 
         public Uri SmtpServerHttpEndpoint { get; }
+
         public Uri IdentityAuthority => this.ironcladComponent.Endpoint;
 
         public Uri ApolloEndpoint => new Uri(ApolloEndpointUri);
-
-        public const string ApolloAuthApiIdentifier = "apollo";
-        public const string ApolloAuthClientId = "apollo";
-        public const string ApolloEndpointUri = "http://localhost:5006/status";
 
         public HttpMessageHandler IdentityAuthorityAdminHandler => this.ironcladComponent.Handler;
         // TODO: Expose all the relevant properties such that tests can connect to the various services 
@@ -46,8 +51,7 @@ namespace Apollo.Tests.Unit.Sdk
             await Task.WhenAll(
                 this.ironcladComponent.InitializeAsync(),
                 this.azureStorageEmulatorContainer.InitializeAsync(),
-                this.mailhogContainer.InitializeAsync()
-            ).ConfigureAwait(false);
+                this.mailhogContainer.InitializeAsync()).ConfigureAwait(false);
 
             await this.apolloInstance.InitializeAsync().ConfigureAwait(false);
         }

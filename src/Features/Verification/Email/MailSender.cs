@@ -1,8 +1,8 @@
-﻿using System.Net.Mail;
-using Apollo.Settings;
-
-namespace Apollo.Features.Verification.Email
+﻿namespace Apollo.Features.Verification.Email
 {
+    using System.Net.Mail;
+    using Apollo.Settings;
+
     public class MailSender
     {
         private readonly AppSettings appSettings;

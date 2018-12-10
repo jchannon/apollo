@@ -18,24 +18,26 @@ namespace Ironclad.Tests.Sdk
 
     public sealed class AuthenticationFixture : IAsyncLifetime
     {
-        private readonly string authority;
-        private readonly string username;
-        private readonly string password;
         private readonly string clientId;
+
+        private readonly string password;
+
         private readonly string scope;
+
+        private readonly string username;
 
         public AuthenticationFixture()
         {
             var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
 
-            this.authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
+            this.Authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
             this.username = configuration.GetValue<string>("username") ?? throw new ConfigurationErrorsException("Missing configuration value 'username'");
             this.password = configuration.GetValue<string>("password") ?? throw new ConfigurationErrorsException("Missing configuration value 'password'");
             this.clientId = configuration.GetValue<string>("client_id") ?? throw new ConfigurationErrorsException("Missing configuration value 'client_id'");
             this.scope = configuration.GetValue<string>("scope") ?? throw new ConfigurationErrorsException("Missing configuration value 'scope'");
         }
 
-        public string Authority => this.authority;
+        public string Authority { get; }
 
         public HttpMessageHandler Handler { get; private set; }
 
@@ -45,7 +47,7 @@ namespace Ironclad.Tests.Sdk
             var browser = new Browser(automation);
             var options = new OidcClientOptions
             {
-                Authority = this.authority,
+                Authority = this.Authority,
                 ClientId = this.clientId,
                 RedirectUri = $"http://127.0.0.1:{browser.Port}",
                 Scope = this.scope,
@@ -128,7 +130,10 @@ namespace Ironclad.Tests.Sdk
 
             public string AccessToken { get; }
 
-            public static WaitUntilAvailableResult Available(string accessToken) => new WaitUntilAvailableResult(accessToken);
+            public static WaitUntilAvailableResult Available(string accessToken)
+            {
+                return new WaitUntilAvailableResult(accessToken);
+            }
         }
 
         private sealed class TokenHandler : DelegatingHandler

@@ -3,4 +3,4 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Ironclad.Tests")]
+[assembly: InternalsVisibleTo("Ironclad.Tests")]

@@ -5,7 +5,6 @@
     <LangVersion>latest</LangVersion>
     <UserSecretsId>36e48e2c-c27c-402f-b564-98848ffa0dc9</UserSecretsId>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Carter" Version="3.8.0" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
@@ -18,7 +17,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.2" />
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="appsettings.json" />
     <Content Include="appsettings.json">
@@ -26,5 +24,4 @@
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
-
 </Project>

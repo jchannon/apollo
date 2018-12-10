@@ -29,7 +29,10 @@ namespace Ironclad.Tests.Sdk
 
         public int StopRedirectingAfter { get; set; } = int.MaxValue;
 
-        internal Cookie GetCookie(string uri, string name) => this.cookieContainer.GetCookies(new Uri(uri)).Cast<Cookie>().Where(x => x.Name == name).FirstOrDefault();
+        internal Cookie GetCookie(string uri, string name)
+        {
+            return this.cookieContainer.GetCookies(new Uri(uri)).Cast<Cookie>().Where(x => x.Name == name).FirstOrDefault();
+        }
 
         internal void RemoveCookie(string uri, string name)
         {
@@ -40,13 +43,13 @@ namespace Ironclad.Tests.Sdk
             }
         }
 
-        protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var response = await this.SendCookiesAsync(request, cancellationToken).ConfigureAwait(false);
 
-            int redirectCount = 0;
+            var redirectCount = 0;
 
-            while (this.AllowAutoRedirect && ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400) && redirectCount < this.StopRedirectingAfter)
+            while (this.AllowAutoRedirect && (int)response.StatusCode >= 300 && (int)response.StatusCode < 400 && redirectCount < this.StopRedirectingAfter)
             {
                 if (redirectCount >= this.ErrorRedirectLimit)
                 {

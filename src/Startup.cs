@@ -1,17 +1,16 @@
-using Apollo.Features.Verification;
-using Apollo.Features.Verification.Email;
-using Apollo.Settings;
-using Carter;
-using IdentityServer4.AccessTokenValidation;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Apollo
 {
+    using Apollo.Features.Verification;
+    using Apollo.Features.Verification.Email;
     using Apollo.Features.Verification.Phone.PhoneVerification;
     using Apollo.Persistence;
     using Apollo.Persistence.AzureStorage;
+    using Apollo.Settings;
+    using Carter;
+    using IdentityServer4.AccessTokenValidation;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class Startup
     {

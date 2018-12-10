@@ -18,8 +18,10 @@ namespace Ironclad.Tests.Sdk
     public class BrowserAutomation : HttpClient
     {
         private readonly BrowserHandler handler;
-        private readonly string username;
+
         private readonly string password;
+
+        private readonly string username;
 
         private HttpResponseMessage loginResult;
 
@@ -43,9 +45,15 @@ namespace Ironclad.Tests.Sdk
             this.loginResult.RequestMessage.RequestUri.PathAndQuery.Should().NotStartWith("/home/error");
         }
 
-        public Task LoginToAuthorizationServerAsync() => this.Login(false);
+        public Task LoginToAuthorizationServerAsync()
+        {
+            return this.Login(false);
+        }
 
-        public Task<AuthorizeResponse> LoginToAuthorizationServerAndCaptureRedirectAsync() => this.Login(true);
+        public Task<AuthorizeResponse> LoginToAuthorizationServerAndCaptureRedirectAsync()
+        {
+            return this.Login(true);
+        }
 
         private async Task<AuthorizeResponse> Login(bool capture)
         {
@@ -66,7 +74,7 @@ namespace Ironclad.Tests.Sdk
                 { "Username", this.username },
                 { "Password", this.password },
                 { "__RequestVerificationToken", token },
-                { "RememberMe", "false" },
+                { "RememberMe", "false" }
             };
 
             if (capture)
@@ -112,7 +120,8 @@ namespace Ironclad.Tests.Sdk
             {
                 var startIndex = html.IndexOf("<input type='hidden' name='", index, StringComparison.OrdinalIgnoreCase) + 27;
                 var name = html.Substring(startIndex, html.IndexOf("'", startIndex, StringComparison.OrdinalIgnoreCase) - startIndex);
-                var value = html.Substring(startIndex + name.Length + 9, html.IndexOf("'", startIndex + name.Length + 9, StringComparison.OrdinalIgnoreCase) - startIndex - name.Length - 9);
+                var value = html.Substring(startIndex + name.Length + 9,
+                    html.IndexOf("'", startIndex + name.Length + 9, StringComparison.OrdinalIgnoreCase) - startIndex - name.Length - 9);
 
                 form.Add(name, value);
 

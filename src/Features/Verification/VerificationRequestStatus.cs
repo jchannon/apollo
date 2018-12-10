@@ -1,10 +1,13 @@
-﻿namespace Apollo.Persistence
+﻿namespace Apollo.Features.Verification
 {
     public enum VerificationRequestStatus
     {
-        Accepted = 0,
-        Shipped,
+        Pending,
+
         Confirmed,
+
+        Expired,
+
         Failed
     }
 }

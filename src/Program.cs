@@ -1,13 +1,13 @@
 ﻿namespace Apollo
 {
+    using System.IO;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
-    using System.IO;
 
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             await WebHost.CreateDefaultBuilder<Startup>(args)
                 .UseUrls("http://+:5006")

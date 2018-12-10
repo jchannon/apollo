@@ -1,30 +1,14 @@
-﻿using System.Threading.Tasks;
-
-namespace Apollo.Persistence
+﻿namespace Apollo.Persistence
 {
+    using System.Threading.Tasks;
+    using Apollo.Features.Verification;
+
     public interface IVerificationRequestRepository
     {
-        /// <summary>
-        /// Add new verification request
-        /// </summary>
-        /// <param name="dto">Verification request details</param>
-        /// <returns></returns>
-        Task<VerificationRequestDto> AddAsync(VerificationRequestDto dto);
+        Task StoreNewVerificationRequest(VerificationRequest verificationRequest);
 
-        /// <summary>
-        /// Get existing verification request
-        /// </summary>
-        /// <param name="lykkeUserId">Lykke User Id</param>
-        /// <param name="requestId">Verification Request Id</param>
-        /// <returns></returns>
-        Task<VerificationRequestDto> GetAsync(string lykkeUserId, string requestId);
+        Task<VerificationRequest> GetVerificationRequest(VerificationType type, string userId);
 
-        /// <summary>
-        /// Update existing verification request
-        /// </summary>
-        /// <param name="dto">Verification request update details</param>
-        /// <returns></returns>
-        /// <exception cref="EntityNotFoundException">Thrown when there is not verification request in database</exception>
-        Task UpdateAsync(VerificationRequestDto dto);
+        Task UpdateAttemptedRequest(VerificationRequest storedCodeRequest);
     }
 }

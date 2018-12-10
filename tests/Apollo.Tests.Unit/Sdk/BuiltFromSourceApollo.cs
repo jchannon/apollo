@@ -1,22 +1,23 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-
-namespace Apollo.Tests.Unit.Sdk
+﻿namespace Apollo.Tests.Unit.Sdk
 {
+    using System;
+    using System.ComponentModel;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Net;
+    using System.Net.Http;
     using System.Runtime.InteropServices;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Xunit;
 
     public class BuiltFromSourceApollo : IAsyncLifetime
     {
         private readonly Uri apolloUri;
+
         private readonly Uri smtpUri;
+
         private Process process;
 
         public BuiltFromSourceApollo(Uri apolloUri, Uri smtpUri)
@@ -32,7 +33,6 @@ namespace Apollo.Tests.Unit.Sdk
                 "..{0}..{0}..{0}..{0}..{0}src{0}Apollo.csproj",
                 Path.DirectorySeparatorChar);
 
-            
             var arguments = Environment.OSVersion.Platform.Equals(PlatformID.Unix)
                 ? $"run -p {path} -- --smtp:host={this.smtpUri.Host} --smtp:port={this.smtpUri.Port}"
                 : $"run -p {path} --smtp:host={this.smtpUri.Host}  --smtp:port={this.smtpUri.Port}";

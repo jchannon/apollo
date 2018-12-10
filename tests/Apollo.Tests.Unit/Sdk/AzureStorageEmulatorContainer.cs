@@ -5,25 +5,26 @@ namespace Apollo.Tests.Unit.Sdk
 {
     using System;
     using Microsoft.WindowsAzure.Storage;
-    
+
     public class AzureStorageEmulatorContainer : DockerContainer
     {
         public AzureStorageEmulatorContainer()
         {
             const string ip = "127.0.0.1";
-            
+
             var blobport = PortManager.GetNextPort();
             var queueport = PortManager.GetNextPort();
             var tableport = PortManager.GetNextPort();
 
-            this.Account = CloudStorageAccount.Parse(
+            this.AccountConnectionString =
                 "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
                 + "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;"
                 + $"BlobEndpoint=http://{ip}:{blobport}/devstoreaccount1;"
                 + $"TableEndpoint=http://{ip}:{tableport}/devstoreaccount1;"
-                + $"QueueEndpoint=http://{ip}:{queueport}/devstoreaccount1;"
-            );
-            
+                + $"QueueEndpoint=http://{ip}:{queueport}/devstoreaccount1;";
+
+            this.Account = CloudStorageAccount.Parse(this.AccountConnectionString);
+
             this.Configuration = new DockerContainerConfiguration
             {
                 //REMARK: the microsoft docker image is windows based which does not run on linux
@@ -37,15 +38,18 @@ namespace Apollo.Tests.Unit.Sdk
                 {
                     new DockerContainerPortBinding
                     {
-                        GuestTcpPort = 10000, HostTcpPort = blobport
+                        GuestTcpPort = 10000,
+                        HostTcpPort = blobport
                     },
                     new DockerContainerPortBinding
                     {
-                        GuestTcpPort = 10001, HostTcpPort = queueport
+                        GuestTcpPort = 10001,
+                        HostTcpPort = queueport
                     },
                     new DockerContainerPortBinding
                     {
-                        GuestTcpPort = 10002, HostTcpPort = tableport
+                        GuestTcpPort = 10002,
+                        HostTcpPort = tableport
                     }
                 },
                 MaximumWaitUntilAvailableAttempts = 5,
@@ -70,5 +74,7 @@ namespace Apollo.Tests.Unit.Sdk
         }
 
         public CloudStorageAccount Account { get; }
+
+        public string AccountConnectionString { get; }
     }
 }

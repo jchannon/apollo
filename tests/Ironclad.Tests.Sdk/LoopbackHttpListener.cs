@@ -18,6 +18,7 @@ namespace Ironclad.Tests.Sdk
         private const int DefaultTimeout = 30;
 
         private readonly IWebHost host;
+
         private readonly TaskCompletionSource<string> source = new TaskCompletionSource<string>();
 
         public LoopbackHttpListener(int port, string path = null)
@@ -41,6 +42,16 @@ namespace Ironclad.Tests.Sdk
 
         public string Url { get; }
 
+        public void Dispose()
+        {
+            Task.Run(
+                async () =>
+                {
+                    await Task.Delay(500).ConfigureAwait(false);
+                    this.host.Dispose();
+                });
+        }
+
         public Task<string> WaitForCallbackAsync(int timeoutInSeconds = DefaultTimeout)
         {
             Task.Run(
@@ -51,16 +62,6 @@ namespace Ironclad.Tests.Sdk
                 });
 
             return this.source.Task;
-        }
-
-        public void Dispose()
-        {
-            Task.Run(
-                async () =>
-                {
-                    await Task.Delay(500).ConfigureAwait(false);
-                    this.host.Dispose();
-                });
         }
 
         private void Configure(IApplicationBuilder app)

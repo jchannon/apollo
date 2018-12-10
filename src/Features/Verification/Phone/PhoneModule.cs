@@ -1,5 +1,6 @@
 ﻿namespace Apollo.Features.Verification.Phone
 {
+    using System.Threading.Tasks;
     using Apollo.Features.Verification.Phone.PhoneVerification;
     using Apollo.Features.Verification.Phone.PhoneVerificatonSubmission;
     using Carter;
@@ -30,17 +31,18 @@
                 await context.Response.WriteAsync("Hello World");
             });
 
-            this.Post("/phone-verification-submission", async context =>
+            this.Post("/phone-verification-submission", context =>
             {
                 var result = context.Request.BindAndValidate<PhoneVerificationSubmission>();
 
                 if (!result.ValidationResult.IsValid)
                 {
                     context.Response.StatusCode = 422;
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 context.Response.StatusCode = 204;
+                return Task.CompletedTask;
             });
         }
     }

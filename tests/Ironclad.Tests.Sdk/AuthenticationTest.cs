@@ -7,7 +7,7 @@ namespace Ironclad.Tests.Sdk
     using Xunit;
 
     /// <summary>
-    /// Represents the base class for an authentication test.
+    ///     Represents the base class for an authentication test.
     /// </summary>
     [Collection("Ironclad")]
     public class AuthenticationTest
@@ -15,7 +15,7 @@ namespace Ironclad.Tests.Sdk
         private readonly AuthenticationFixture fixture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthenticationTest"/> class.
+        ///     Initializes a new instance of the <see cref="AuthenticationTest" /> class.
         /// </summary>
         /// <param name="fixture">The authentication fixture.</param>
         public AuthenticationTest(AuthenticationFixture fixture)
@@ -24,13 +24,13 @@ namespace Ironclad.Tests.Sdk
         }
 
         /// <summary>
-        /// Gets the authority.
+        ///     Gets the authority.
         /// </summary>
         /// <value>The authority.</value>
         protected string Authority => this.fixture.Authority;
 
         /// <summary>
-        /// Gets the authorized HTTP message handler.
+        ///     Gets the authorized HTTP message handler.
         /// </summary>
         /// <value>The handler.</value>
         protected HttpMessageHandler Handler => this.fixture.Handler;

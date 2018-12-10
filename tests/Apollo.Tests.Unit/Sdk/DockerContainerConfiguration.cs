@@ -9,14 +9,14 @@ namespace Apollo.Tests.Unit.Sdk
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    
+
     public class DockerContainerConfiguration
     {
         // Image related
         public string Registry { get; set; }
-        
+
         public NetworkCredential RegistryCredentials { get; set; }
-        
+
         public string Image { get; set; }
 
         public string Tag { get; set; }
@@ -26,7 +26,7 @@ namespace Apollo.Tests.Unit.Sdk
         public string RegistryQualifiedImage => this.Registry != null
             ? this.Registry + "/" + this.Image
             : this.Image;
-        
+
         public string FullyQualifiedImage => this.Registry != null
             ? this.Registry + "/" + this.TagQualifiedImage
             : this.TagQualifiedImage;
@@ -35,7 +35,7 @@ namespace Apollo.Tests.Unit.Sdk
         public string ContainerName { get; set; }
 
         public bool AutoRemoveContainerOnInitialization { get; set; }
-        
+
         public bool AutoRemoveContainerOnDispose { get; set; }
 
         public DockerContainerPortBinding[] ContainerPortBindings { get; set; } = Array.Empty<DockerContainerPortBinding>();

@@ -6,11 +6,11 @@
     using System.Net.Http.Headers;
     using System.Text;
     using System.Threading.Tasks;
+    using Apollo.Tests.Unit.Sdk;
     using FluentAssertions;
     using IdentityModel.Client;
     using Ironclad.Tests.Sdk;
     using Newtonsoft.Json;
-    using Apollo.Tests.Unit.Sdk;
     using Xbehave;
     using Xunit;
 
@@ -73,18 +73,18 @@
 
             "And I can login as the user".x(async () => { await this.driver.Login(); });
 
-            "When I Request an SMS Code".x(async () => {await this.driver.RequestSMSCode(); });
+            "When I Request an SMS Code".x(async () => { await this.driver.RequestSMSCode(); });
 
             "Then I get a invalid response code".x(() => { this.driver.ResponseIsInvalid(); });
         }
 
         private sealed class Driver
         {
-            private readonly ApolloIntegrationFixture services;
+            private readonly HttpClient apolloClient;
 
             private readonly HttpClient ironcladClient;
 
-            private readonly HttpClient apolloClient;
+            private readonly ApolloIntegrationFixture services;
 
             private User currentUser;
 
@@ -107,7 +107,7 @@
 
             public async Task RegisterUserWithNumber(string phoneNumber)
             {
-                currentUser = new User
+                this.currentUser = new User
                 {
                     Username = Guid.NewGuid().ToString("N"),
                     Password = Guid.NewGuid().ToString("N"),
@@ -116,7 +116,7 @@
                 };
 
                 var response = await this.ironcladClient.PostAsync("/api/users",
-                    new StringContent(JsonConvert.SerializeObject(currentUser), Encoding.UTF8, "application/json"));
+                    new StringContent(JsonConvert.SerializeObject(this.currentUser), Encoding.UTF8, "application/json"));
 
                 response.EnsureSuccessStatusCode();
             }

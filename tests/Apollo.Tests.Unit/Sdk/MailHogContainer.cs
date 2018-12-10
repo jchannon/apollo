@@ -5,7 +5,7 @@ namespace Apollo.Tests.Unit.Sdk
 {
     using System;
     using System.Net.Http;
-    
+
     public class MailHogContainer : DockerContainer
     {
         public MailHogContainer(Uri smtpEndpoint, Uri httpEndpoint)
@@ -22,11 +22,13 @@ namespace Apollo.Tests.Unit.Sdk
                 {
                     new DockerContainerPortBinding
                     {
-                        GuestTcpPort = 1025, HostTcpPort = smtpEndpoint.Port
+                        GuestTcpPort = 1025,
+                        HostTcpPort = smtpEndpoint.Port
                     },
                     new DockerContainerPortBinding
                     {
-                        GuestTcpPort = 8025, HostTcpPort = httpEndpoint.Port
+                        GuestTcpPort = 8025,
+                        HostTcpPort = httpEndpoint.Port
                     }
                 },
                 MaximumWaitUntilAvailableAttempts = 5,
@@ -37,7 +39,7 @@ namespace Apollo.Tests.Unit.Sdk
                     {
                         using (var client = new HttpClient())
                         {
-                            var requestUri = new UriBuilder(httpEndpoint) {Path = "/api/v1/messages"}.Uri;
+                            var requestUri = new UriBuilder(httpEndpoint) { Path = "/api/v1/messages" }.Uri;
                             using (var response = await client.GetAsync(requestUri, token))
                             {
                                 if (response.IsSuccessStatusCode)

@@ -7,10 +7,11 @@ namespace Apollo.Tests.Unit.Sdk
     using System.Net;
     using System.Net.Http;
     using Npgsql;
-    
+
     public class IroncladContainer : DockerContainer
     {
-        public IroncladContainer(Uri endpoint, NpgsqlConnectionStringBuilder connectionStringBuilder, NetworkCredential registryCredentials, NetworkCredential googleCredentials)
+        public IroncladContainer(Uri endpoint, NpgsqlConnectionStringBuilder connectionStringBuilder, NetworkCredential registryCredentials,
+            NetworkCredential googleCredentials)
         {
             if (endpoint == null)
             {
@@ -52,7 +53,8 @@ namespace Apollo.Tests.Unit.Sdk
                 {
                     new DockerContainerPortBinding
                     {
-                        GuestTcpPort = 80, HostTcpPort = endpoint.Port
+                        GuestTcpPort = 80,
+                        HostTcpPort = endpoint.Port
                     }
                 },
                 WaitUntilAvailable = async token =>
@@ -80,7 +82,5 @@ namespace Apollo.Tests.Unit.Sdk
                 TimeBetweenWaitUntilAvailableAttempts = TimeSpan.FromSeconds(1)
             };
         }
-        
-        
     }
 }

@@ -1,25 +1,20 @@
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using Apollo.Tests.Unit.Sdk;
-using Bogus.DataSets;
-using FluentAssertions;
-using IdentityModel.Client;
-using Ironclad.Tests.Sdk;
-using Newtonsoft.Json;
-
 namespace Apollo.Tests.Unit
 {
+    using System;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Apollo.Tests.Unit.Sdk;
+    using Bogus.DataSets;
+    using FluentAssertions;
+    using IdentityModel.Client;
+    using Ironclad.Tests.Sdk;
+    using Newtonsoft.Json;
+
     public abstract class IdentityTestDriver
     {
         private readonly HttpClient ironcladClient;
-
-        protected ApolloIntegrationFixture Services { get; }
-        protected HttpClient ApolloClient { get; }
-
-        public User CurrentUser { get; set; }
 
         protected IdentityTestDriver(ApolloIntegrationFixture services)
         {
@@ -40,7 +35,7 @@ namespace Apollo.Tests.Unit
 
             var email = internet.Email();
 
-            CurrentUser = new User
+            this.CurrentUser = new User
             {
                 Username = email,
                 Password = internet.Password(),
@@ -48,21 +43,28 @@ namespace Apollo.Tests.Unit
                 PhoneNumber = phoneNumbers.PhoneNumber()
             };
         }
+        
+        public User CurrentUser { get; set; }
+
+        protected ApolloIntegrationFixture Services { get; }
+
+        protected HttpClient ApolloClient { get; }
+
 
         public async Task RegisterUser(bool emailVerified = false, bool phoneVerified = false)
         {
             if (emailVerified)
             {
-                CurrentUser.VerifyEmail();
+                this.CurrentUser.VerifyEmail();
             }
 
             if (phoneVerified)
             {
-                CurrentUser.VerifyPhone();
+                this.CurrentUser.VerifyPhone();
             }
-            
+
             var response = await this.ironcladClient.PostAsync("/api/users",
-                new StringContent(JsonConvert.SerializeObject(CurrentUser), Encoding.UTF8, "application/json"));
+                new StringContent(JsonConvert.SerializeObject(this.CurrentUser), Encoding.UTF8, "application/json"));
 
             response.EnsureSuccessStatusCode();
         }
@@ -73,7 +75,7 @@ namespace Apollo.Tests.Unit
                 .CreateAuthorizeUrl(ApolloIntegrationFixture.ApolloAuthClientId, "id_token token", $"openid profile {ApolloIntegrationFixture.ApolloAuthApiIdentifier}",
                     $"{this.Services.ApolloEndpoint}/redirect", "state", "nonce");
 
-            var automation = new BrowserAutomation(CurrentUser.Username, CurrentUser.Password);
+            var automation = new BrowserAutomation(this.CurrentUser.Username, this.CurrentUser.Password);
             await automation.NavigateToLoginAsync(url).ConfigureAwait(false);
             var authorizeResponse = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync().ConfigureAwait(false);
 

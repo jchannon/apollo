@@ -1,7 +1,8 @@
 ﻿namespace Apollo.Tests.Unit
 {
     using System;
-    using Persistence;
+    using Apollo.Features.Verification;
+    using FluentAssertions;
     using Xunit;
 
     public class VerificationRequestTests
@@ -10,96 +11,70 @@
         [InlineData("")]
         [InlineData(" ")]
         [InlineData(null)]
-        public void CreateEmailVerificationRequest_InvalidUserId_RaisesException(string lykkeUserId)
+        public void UserIdCannotBeNullOrEmpty(string userId)
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                VerificationRequestDto.CreateEmailVerificationRequest(lykkeUserId, DateTime.UtcNow.AddDays(1)));
+            Assert.Throws<ArgumentNullException>(() => VerificationRequest.GenerateNewVerificationRequest(userId, VerificationType.Email, null));
         }
 
         [Fact]
-        public void CreateEmailVerificationRequest_InvalidExpirationDate_RaisesException()
+        public void CanCreateValidVerificationRequest()
         {
-            var lykkeUserId = Guid.NewGuid().ToString();
+            var request = VerificationRequest.GenerateNewVerificationRequest("userId", VerificationType.Email, VerificationCode.Generate());
 
-            var invalidExpirationDate = DateTime.UtcNow.AddDays(-1);
-
-            Assert.Throws<InvalidOperationException>(() =>
-                VerificationRequestDto.CreateEmailVerificationRequest(lykkeUserId, invalidExpirationDate));
+            request.Should().NotBeNull();
+            request.Attempts.Should().Be(0);
+            request.Status.Should().Be(VerificationRequestStatus.Pending);
+            request.ExpiryDate.Should().BeAfter(DateTime.UtcNow);
         }
 
         [Fact]
-        public void CreateEmailVerificationRequest_ValidParameters_CreatesRequest()
+        public void VerificationCodeCannotBeNull()
         {
-            var lykkeUserId = Guid.NewGuid().ToString();
-
-            var expirationDate = DateTime.UtcNow.AddDays(1);
-
-            var verificationRequest = VerificationRequestDto.CreateEmailVerificationRequest(lykkeUserId, expirationDate);
-
-            Assert.Equal(VerificationRequestStatus.Accepted, verificationRequest.Status);
-            Assert.Equal(lykkeUserId, verificationRequest.LykkeUserId);
-            Assert.NotNull(verificationRequest.Code);
-            Assert.Equal(VerificationRequestMethod.SendEmail, verificationRequest.Method);
-            Assert.Equal(VerificationRequestSubject.Email, verificationRequest.Subject);
-            Assert.Equal(expirationDate, verificationRequest.ExpirationDate);
-        }
-
-        [Theory]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData(null)]
-        public void CreatePhoneVerificationRequest_InvalidUserId_RaisesException(string lykkeUserId)
-        {
-            Assert.Throws<ArgumentNullException>(() => VerificationRequestDto.CreatePhoneVerificationRequest(
-                lykkeUserId,
-                DateTime.UtcNow.AddDays(1),
-                VerificationRequestMethod.SendSms));
+            Assert.Throws<ArgumentNullException>(() => VerificationRequest.GenerateNewVerificationRequest("userId", VerificationType.PhoneCall, null));
         }
 
         [Fact]
-        public void CreatePhoneVerificationRequest_InvalidExpirationDate_RaisesException()
+        public void ShouldRejectExpiredCodes()
         {
-            var lykkeUserId = Guid.NewGuid().ToString();
+            var code = VerificationCode.Generate();
+            var expiredRequest = new VerificationRequest("userId", VerificationType.SMS, VerificationRequestStatus.Pending, DateTime.MinValue, code, 0);
 
-            var invalidExpirationDate = DateTime.UtcNow.AddDays(-1);
+            var validatedRequest = expiredRequest.ValidateCode(code);
 
-            Assert.Throws<InvalidOperationException>(() => VerificationRequestDto.CreatePhoneVerificationRequest(
-                lykkeUserId,
-                invalidExpirationDate,
-                VerificationRequestMethod.SendSms));
+            validatedRequest.Status.Should().Be(VerificationRequestStatus.Expired);
         }
 
         [Fact]
-        public void CreatePhoneVerificationRequest_InvalidMethod_RaisesException()
+        public void ShouldRejectFailedCode()
         {
-            var lykkeUserId = Guid.NewGuid().ToString();
+            var code = VerificationCode.Generate();
+            var failedRequest = new VerificationRequest("userId", VerificationType.SMS, VerificationRequestStatus.Failed, DateTime.MinValue, code, 3);
 
-            var expirationDate = DateTime.UtcNow.AddDays(1);
+            var validatedRequest = failedRequest.ValidateCode(code);
 
-            Assert.Throws<InvalidOperationException>(() => VerificationRequestDto.CreatePhoneVerificationRequest(
-                lykkeUserId,
-                expirationDate,
-                VerificationRequestMethod.SendEmail));
+            validatedRequest.Status.Should().Be(VerificationRequestStatus.Failed);
         }
 
-        [Theory]
-        [InlineData(VerificationRequestMethod.SendSms)]
-        [InlineData(VerificationRequestMethod.PhoneCall)]
-        public void CreatePhoneVerificationRequest_ValidParameters_CreatesRequest(VerificationRequestMethod method)
+        [Fact]
+        public void ShouldFailCodeAfterThreeAttempts()
         {
-            var lykkeUserId = Guid.NewGuid().ToString();
+            var code = VerificationCode.Generate();
+            var failedRequest = new VerificationRequest("userId", VerificationType.SMS, VerificationRequestStatus.Pending, DateTime.MaxValue, code, 2);
 
-            var expirationDate = DateTime.UtcNow.AddDays(1);
+            var validatedRequest = failedRequest.ValidateCode(VerificationCode.Generate());
 
-            var verificationRequest =
-                VerificationRequestDto.CreatePhoneVerificationRequest(lykkeUserId, expirationDate, method);
+            validatedRequest.Status.Should().Be(VerificationRequestStatus.Failed);
+        }
+        
+        [Fact]
+        public void ShouldAcceptCodeOnLastAttempt()
+        {
+            var code = VerificationCode.Generate();
+            var failedRequest = new VerificationRequest("userId", VerificationType.SMS, VerificationRequestStatus.Pending, DateTime.MaxValue, code, 2);
 
-            Assert.Equal(VerificationRequestStatus.Accepted, verificationRequest.Status);
-            Assert.Equal(lykkeUserId, verificationRequest.LykkeUserId);
-            Assert.NotNull(verificationRequest.Code);
-            Assert.Equal(method, verificationRequest.Method);
-            Assert.Equal(VerificationRequestSubject.Phone, verificationRequest.Subject);
-            Assert.Equal(expirationDate, verificationRequest.ExpirationDate);
+            var validatedRequest = failedRequest.ValidateCode(code);
+
+            validatedRequest.Status.Should().Be(VerificationRequestStatus.Confirmed);
         }
     }
 }

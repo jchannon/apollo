@@ -4,16 +4,6 @@ namespace Apollo
 
     public abstract class CommandHandler<T> : ICommandHandler
     {
-        protected virtual Task<Error> Handle(T command)
-        {
-            return default;
-        }
-
-        protected virtual (object Data, Error Error) Execute(object command)
-        {
-            return default;
-        }
-
         (object Data, Error Error) ICommandHandler.Execute(object command)
         {
             return this.Execute((T)command);
@@ -22,6 +12,16 @@ namespace Apollo
         Task<Error> ICommandHandler.Handle(object command)
         {
             return this.Handle((T)command);
+        }
+
+        protected virtual Task<Error> Handle(T command)
+        {
+            return default;
+        }
+
+        protected virtual (object Data, Error Error) Execute(object command)
+        {
+            return default;
         }
     }
 }

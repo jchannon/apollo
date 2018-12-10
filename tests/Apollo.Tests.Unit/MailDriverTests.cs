@@ -5,42 +5,19 @@ namespace Apollo.Tests.Unit
 {
     using System.Net.Mail;
     using System.Threading.Tasks;
-    using Sdk;
+    using Apollo.Tests.Unit.Sdk;
     using Bogus.DataSets;
-    using Ironclad.Tests.Sdk;
     using Xunit;
 
     [Collection(nameof(ApolloIntegrationCollection))]
     public class MailDriverTests
     {
-        private readonly MailDriver driver;
-
         public MailDriverTests(ApolloIntegrationFixture services)
         {
             this.driver = new MailDriver(services);
         }
 
-        [Fact]
-        public async Task WaitForEmailWithConfirmationCodeHasExpectedBehavior()
-        {
-            // TODO: Once templating is introduced this test should reflect that.
-            // We could use our email sender implementation.
-            
-            var lorem = new Lorem();
-            var code = lorem.Letter(5);
-            
-            using (var message = new MailMessage(this.driver.FromEmailAddress, new MailAddress(this.driver.CurrentUser.Email))
-            {
-                Body = code
-            })
-            {
-                this.SendMailMessage(message);
-            }
-
-            var result = await this.driver.WaitForEmailWithConfirmationCode();
-            
-            Assert.Equal(code, result.Trim());
-        }
+        private readonly MailDriver driver;
 
         private void SendMailMessage(MailMessage message)
         {
@@ -50,6 +27,28 @@ namespace Apollo.Tests.Unit
             {
                 client.Send(message);
             }
+        }
+
+        [Fact]
+        public async Task WaitForEmailWithConfirmationCodeHasExpectedBehavior()
+        {
+            // TODO: Once templating is introduced this test should reflect that.
+            // We could use our email sender implementation.
+
+            var lorem = new Lorem();
+            var code = lorem.Letter(5);
+
+            using (var message = new MailMessage(this.driver.FromEmailAddress, new MailAddress(this.driver.CurrentUser.Email))
+            {
+                Body = code
+            })
+            {
+                this.SendMailMessage(message);
+            }
+
+            var result = await this.driver.WaitForEmailWithConfirmationCode();
+
+            Assert.Equal(code, result.Trim());
         }
     }
 }

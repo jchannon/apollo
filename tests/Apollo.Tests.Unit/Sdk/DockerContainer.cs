@@ -20,11 +20,11 @@ namespace Apollo.Tests.Unit.Sdk
 
         private const string WindowsPipe = "npipe://./pipe/docker_engine";
 
+        private readonly DockerClient client;
+
         private readonly DockerClientConfiguration clientConfiguration =
             new DockerClientConfiguration(
                 new Uri(Environment.GetEnvironmentVariable("DOCKER_HOST") ?? (Environment.OSVersion.Platform.Equals(PlatformID.Unix) ? UnixPipe : WindowsPipe)));
-
-        private readonly DockerClient client;
 
         private DockerContainerConfiguration configuration;
 
@@ -264,7 +264,11 @@ namespace Apollo.Tests.Unit.Sdk
                             Tag = this.Configuration.Tag
                         },
                         this.Configuration.RegistryCredentials != null
-                            ? new AuthConfig { Username = this.Configuration.RegistryCredentials.UserName, Password = this.Configuration.RegistryCredentials.Password }
+                            ? new AuthConfig
+                            {
+                                Username = this.Configuration.RegistryCredentials.UserName,
+                                Password = this.Configuration.RegistryCredentials.Password
+                            }
                             : null,
                         Progress.IsBeingIgnored,
                         token)
@@ -274,7 +278,8 @@ namespace Apollo.Tests.Unit.Sdk
 
         private async Task<bool> ImageExists(CancellationToken token)
         {
-            var images = await this.client.Images.ListImagesAsync(new ImagesListParameters { MatchName = this.Configuration.RegistryQualifiedImage }, token).ConfigureAwait(false);
+            var images = await this.client.Images.ListImagesAsync(new ImagesListParameters { MatchName = this.Configuration.RegistryQualifiedImage }, token)
+                .ConfigureAwait(false);
             return images.Count != 0;
         }
 
@@ -285,20 +290,6 @@ namespace Apollo.Tests.Unit.Sdk
             public void Report(JSONMessage value)
             {
             }
-        }
-
-        public async Task<string> GetContainerIp()
-        {
-            var containerId = await this.TryFindContainer(default);
-
-            if (string.IsNullOrEmpty(containerId))
-            {
-                throw new Exception("Container could not be found");
-            }
-
-            var containerInspection = await this.client.Containers.InspectContainerAsync(containerId);
-
-            return containerInspection.NetworkSettings.IPAddress;
         }
     }
 }

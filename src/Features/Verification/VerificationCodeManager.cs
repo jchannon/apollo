@@ -1,31 +1,47 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Apollo.Features.Verification
+﻿namespace Apollo.Features.Verification
 {
-    public enum VerificationType
-    {
-        Email,
-        Phone
-    }
-   
+    using System;
+    using System.Threading.Tasks;
+    using Apollo.Persistence;
+
     public class VerificationCodeManager
     {
-        public async Task GenerateCode(VerificationType type, string userId, Func<VerificationCode, Task> dispatch)
+        private readonly IVerificationRequestRepository verificationRequestRepository;
+
+        public VerificationCodeManager(IVerificationRequestRepository verificationRequestRepository)
         {
-            //generate the code
-            //store it in table storage
-            //dispatch it using dispatch(code)
-            var code = VerificationCode.Generate();
-            await dispatch(code);
+            this.verificationRequestRepository = verificationRequestRepository;
         }
 
-        public Task VerifyCode(VerificationType type, string userId, VerificationCode code)
+        public async Task<bool> GenerateCode(VerificationType type, string userId, Func<VerificationCode, Task> onSuccessfulGeneration)
         {
-            //look up the code in storage
-            //do validation checks
-            //done
-            return Task.CompletedTask;
+            var outstandingRequest = await this.verificationRequestRepository.GetVerificationRequest(type, userId);
+            if (outstandingRequest != null && outstandingRequest.IsActive())
+            {
+                return false;
+            }
+
+            var verificationRequest = VerificationRequest.GenerateNewVerificationRequest(userId, type, VerificationCode.Generate());
+            await this.verificationRequestRepository.StoreNewVerificationRequest(verificationRequest); //todo config the time
+            await onSuccessfulGeneration(verificationRequest.Code);
+            return true;
+        }
+
+        public async Task<bool> VerifyCode(VerificationType type, string userId, VerificationCode code)
+        {
+            var storedCodeRequest = await this.verificationRequestRepository.GetVerificationRequest(type, userId);
+
+            if (storedCodeRequest == null)
+            {
+                return false;
+            }
+
+            var validatedRequest = storedCodeRequest.ValidateCode(code);
+
+            await this.verificationRequestRepository.UpdateAttemptedRequest(validatedRequest);
+
+            //todo problem+json stuff
+            return validatedRequest.Status == VerificationRequestStatus.Confirmed;
         }
     }
 }
