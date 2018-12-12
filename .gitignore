@@ -58,4 +58,5 @@ _NCrunch_*
 node_modules
 **/launchSettings.json
 
-appsettings.Custom.json
+# project
+*.[Cc]ustom.*

@@ -1,4 +1,4 @@
-namespace Apollo.Tests.Unit
+﻿namespace Apollo.Tests.Unit
 {
     using System.Net;
     using System.Net.Http;
@@ -23,7 +23,7 @@ namespace Apollo.Tests.Unit
         {
             "Given I have a user with a verified email and unverified phone number".x(async () =>
             {
-                await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false, phoneNumber:"+447974666916");
+                await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false);
             });
 
             "And I can login as the user".x(async () => { await this.smsDriver.Login(); });

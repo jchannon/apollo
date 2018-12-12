@@ -26,8 +26,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Remove="appsettings.Custom.json" />
-    <Content Include="appsettings.Custom.json">
+    <Content Update="appsettings.Custom.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>

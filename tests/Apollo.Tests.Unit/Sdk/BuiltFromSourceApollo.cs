@@ -17,13 +17,14 @@ namespace Apollo.Tests.Unit.Sdk
         private readonly Uri apolloUri;
 
         private readonly Uri smtpUri;
-
+        private readonly string authority;
         private Process process;
 
-        public BuiltFromSourceApollo(Uri apolloUri, Uri smtpUri)
+        public BuiltFromSourceApollo(Uri apolloUri, Uri smtpUri, string authority)
         {
             this.apolloUri = apolloUri;
             this.smtpUri = smtpUri;
+            this.authority = authority;
         }
 
         public async Task InitializeAsync()
@@ -34,8 +35,8 @@ namespace Apollo.Tests.Unit.Sdk
                 Path.DirectorySeparatorChar);
 
             var arguments = Environment.OSVersion.Platform.Equals(PlatformID.Unix)
-                ? $"run -p {path} -- --smtp:host={this.smtpUri.Host} --smtp:port={this.smtpUri.Port}"
-                : $"run -p {path} --smtp:host={this.smtpUri.Host}  --smtp:port={this.smtpUri.Port}";
+                ? $"run -p {path} -- --smtp:host={this.smtpUri.Host} --smtp:port={this.smtpUri.Port} --identityserver:authority={authority}"
+                : $"run -p {path} --smtp:host={this.smtpUri.Host}  --smtp:port={this.smtpUri.Port} --identityserver:authority={authority}";
 
             this.process = Process.Start(
                 new ProcessStartInfo(

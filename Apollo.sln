@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0D8031BB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apollo.Tests.Unit", "tests\Apollo.Tests.Unit\Apollo.Tests.Unit.csproj", "{BAC87C78-8398-4838-B92B-F89AC3D41C34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.Tests.Sdk", "tests\Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj", "{A193DDD1-D484-4763-9DA2-AC3A2078470E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,10 +25,6 @@ Global
 		{BAC87C78-8398-4838-B92B-F89AC3D41C34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAC87C78-8398-4838-B92B-F89AC3D41C34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAC87C78-8398-4838-B92B-F89AC3D41C34}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A193DDD1-D484-4763-9DA2-AC3A2078470E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A193DDD1-D484-4763-9DA2-AC3A2078470E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A193DDD1-D484-4763-9DA2-AC3A2078470E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A193DDD1-D484-4763-9DA2-AC3A2078470E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -38,7 +32,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{5650BD09-A75A-4D4C-A464-A11AFA02714B} = {95238776-9E3A-4412-B63D-FBF14A7A32A4}
 		{BAC87C78-8398-4838-B92B-F89AC3D41C34} = {0D8031BB-8D34-49AC-AAFF-44107E5C8E7B}
-		{A193DDD1-D484-4763-9DA2-AC3A2078470E} = {0D8031BB-8D34-49AC-AAFF-44107E5C8E7B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4CB479B5-1047-4306-954D-1062DBA1A121}

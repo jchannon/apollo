@@ -1,4 +1,4 @@
-namespace Apollo.Tests.Unit.Sdk
+﻿namespace Apollo.Tests.Unit.Sdk
 {
     using System;
     using System.IO;
@@ -61,7 +61,7 @@ namespace Apollo.Tests.Unit.Sdk
 
         public Task DisposeAsync()
         {
-            this.testServer.Dispose();
+            this.testServer?.Dispose();
             return Task.CompletedTask;
         }
     }

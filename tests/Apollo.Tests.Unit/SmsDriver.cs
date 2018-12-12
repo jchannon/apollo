@@ -1,4 +1,4 @@
-namespace Apollo.Tests.Unit
+﻿namespace Apollo.Tests.Unit
 {
     using System;
     using System.Net.Http;
@@ -22,7 +22,7 @@ namespace Apollo.Tests.Unit
         public async Task<string> WaitForSMS()
         {
             var repo = new AzureInMemoryRepository();
-            var request = await repo.GetVerificationRequest(VerificationType.SMS, this.CurrentUser.UserId);
+            var request = await repo.GetVerificationRequest(VerificationType.SMS, this.UserId);
 
             return request.Code.ToString();
         }

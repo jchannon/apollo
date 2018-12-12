@@ -1,17 +1,17 @@
-namespace Apollo.Tests.Unit
+﻿namespace Apollo.Tests.Unit
 {
     using System;
     using System.IdentityModel.Tokens.Jwt;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Text;
     using System.Threading.Tasks;
     using Apollo.Tests.Unit.Sdk;
     using Bogus.DataSets;
     using FluentAssertions;
+    using IdentityModel;
     using IdentityModel.Client;
+    using Ironclad.Client;
     using Ironclad.Tests.Sdk;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -19,9 +19,9 @@ namespace Apollo.Tests.Unit
 
     public abstract class IdentityTestDriver
     {
-        private readonly HttpClient ironcladClient;
-
         protected ApolloIntegrationFixture Services { get; }
+
+        public string UserId { get; set; }
 
         public User CurrentUser { get; set; }
 
@@ -29,9 +29,9 @@ namespace Apollo.Tests.Unit
         {
             this.Services = services ?? throw new ArgumentNullException(nameof(services));
 
-            this.ironcladClient = new HttpClient(services.IdentityAuthorityAdminHandler)
+            this.ApolloClient = new HttpClient
             {
-                BaseAddress = services.IdentityAuthority
+                BaseAddress = services.ApolloEndpoint
             };
 
             var internet = new Internet();
@@ -48,16 +48,18 @@ namespace Apollo.Tests.Unit
             };
         }
 
-        public async Task RegisterUser(bool emailVerified = false, bool phoneVerified = false, string phoneNumber = null)
+        protected HttpClient ApolloClient { get; }
+
+        public async Task RegisterUser(bool emailVerified = false, bool phoneVerified = false, string phoneNumber = default)
         {
             if (emailVerified)
             {
-                this.CurrentUser.VerifyEmail();
+                this.CurrentUser.Claims.Add(JwtClaimTypes.EmailVerified, true);
             }
 
             if (phoneVerified)
             {
-                this.CurrentUser.VerifyPhone();
+                this.CurrentUser.Claims.Add(JwtClaimTypes.PhoneNumberVerified, true);
             }
 
             if (!string.IsNullOrWhiteSpace(phoneNumber))
@@ -65,23 +67,24 @@ namespace Apollo.Tests.Unit
                 this.CurrentUser.PhoneNumber = phoneNumber;
             }
 
-            var response = await this.ironcladClient.PostAsync("/api/users",
-                new StringContent(JsonConvert.SerializeObject(this.CurrentUser, GetJsonSerializerSettings()), Encoding.UTF8, "application/json"));
-
-            response.EnsureSuccessStatusCode();
+            await this.Services.UsersClient.AddUserAsync(this.CurrentUser);
         }
 
         public async Task Login()
         {
-            var url = new RequestUrl(this.Services.IdentityAuthority + "connect/authorize")
-                .CreateAuthorizeUrl(ApolloIntegrationFixture.ApolloAuthClientId, "id_token token", $"openid profile {ApolloIntegrationFixture.ApolloAuthApiIdentifier}",
-                    $"{this.Services.ApolloEndpoint}/redirect", "state", "nonce");
+            var url = new RequestUrl(this.Services.Authority + "/connect/authorize")
+                .CreateAuthorizeUrl(
+                    this.Services.Client.Id,
+                    "id_token token",
+                    "openid profile " + this.Services.ApiResource.Name,
+                    this.Services.Client.RedirectUris.First(),
+                    "state",
+                    "nonce");
 
             var automation = new BrowserAutomation(this.CurrentUser.Username, this.CurrentUser.Password);
             await automation.NavigateToLoginAsync(url).ConfigureAwait(false);
             var authorizeResponse = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync().ConfigureAwait(false);
 
-            // assert
             authorizeResponse.IsError.Should().BeFalse();
             this.Services.ApolloClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authorizeResponse.AccessToken);
 
@@ -93,7 +96,7 @@ namespace Apollo.Tests.Unit
 
             var token = handler.ReadJwtToken(authorizeResponse.AccessToken);
 
-            this.CurrentUser.UserId = token.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
+            this.UserId = token.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
         }
 
         private static JsonSerializerSettings GetJsonSerializerSettings()
