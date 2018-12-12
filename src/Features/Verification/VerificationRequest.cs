@@ -46,7 +46,14 @@
 
         public bool IsActive()
         {
-            return (this.Status == VerificationRequestStatus.Pending || this.Status == VerificationRequestStatus.Confirmed) && this.ExpiryDate < DateTime.UtcNow;
+            switch (this.Status)
+            {
+                case VerificationRequestStatus.Confirmed:
+                case VerificationRequestStatus.Pending when this.ExpiryDate > DateTime.UtcNow:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public VerificationRequest ValidateCode(VerificationCode code)

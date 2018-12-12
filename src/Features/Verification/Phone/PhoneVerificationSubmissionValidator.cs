@@ -1,4 +1,4 @@
-﻿namespace Apollo.Features.Verification.Phone.PhoneVerificatonSubmission
+﻿namespace Apollo.Features.Verification.Phone
 {
     using FluentValidation;
 

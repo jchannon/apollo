@@ -15,6 +15,8 @@
 
         public string PhoneNumber { get; set; }
 
+        public string UserId { get; set; }
+
         public User()
         {
             this.Claims = new Dictionary<string, string>();

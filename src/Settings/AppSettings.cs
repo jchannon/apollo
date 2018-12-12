@@ -7,5 +7,7 @@
         public IdentityServerSettings IdentityServer { get; set; }
 
         public SmtpSettings Smtp { get; set; }
+        
+        public TwilioSettings Twilio { get; set; }
     }
 }

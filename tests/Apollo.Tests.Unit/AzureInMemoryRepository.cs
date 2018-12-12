@@ -7,19 +7,19 @@ namespace Apollo.Tests.Unit
 
     public class AzureInMemoryRepository : IVerificationRequestRepository
     {
-        private Dictionary<(string userId, VerificationType type), VerificationRequest> inMemDataStore = new Dictionary<(string userId, VerificationType type), VerificationRequest>();
+        private static readonly Dictionary<(string userId, VerificationType type), VerificationRequest> inMemDataStore = new Dictionary<(string userId, VerificationType type), VerificationRequest>();
 
         public Task StoreNewVerificationRequest(VerificationRequest verificationRequest)
         {
-            this.inMemDataStore[(verificationRequest.UserId, verificationRequest.VerificationType)] = verificationRequest;
+            inMemDataStore[(verificationRequest.UserId, verificationRequest.VerificationType)] = verificationRequest;
             return Task.CompletedTask;
         }
 
         public Task<VerificationRequest> GetVerificationRequest(VerificationType type, string userId)
         {
-            if (this.inMemDataStore.ContainsKey((userId, type)))
+            if (inMemDataStore.ContainsKey((userId, type)))
             {
-                return Task.FromResult(this.inMemDataStore[(userId, type)]);
+                return Task.FromResult(inMemDataStore[(userId, type)]);
             }
 
             return Task.FromResult<VerificationRequest>(null);
@@ -27,9 +27,9 @@ namespace Apollo.Tests.Unit
 
         public Task UpdateAttemptedRequest(VerificationRequest storedCodeRequest)
         {
-            if (this.inMemDataStore.ContainsKey((storedCodeRequest.UserId, storedCodeRequest.VerificationType)))
+            if (inMemDataStore.ContainsKey((storedCodeRequest.UserId, storedCodeRequest.VerificationType)))
             {
-                this.inMemDataStore[(storedCodeRequest.UserId, storedCodeRequest.VerificationType)] = storedCodeRequest;
+                inMemDataStore[(storedCodeRequest.UserId, storedCodeRequest.VerificationType)] = storedCodeRequest;
             }
 
             return Task.CompletedTask;

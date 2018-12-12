@@ -38,18 +38,24 @@ namespace Apollo.Tests.Unit.Sdk
             Environment.SetEnvironmentVariable("SMTP__port", this.smtpport);
             Environment.SetEnvironmentVariable("IdentityServer__Authority", this.identityAuthority);
 
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+
             this.azureInMemoryRepository = new AzureInMemoryRepository();
 
             var builder = new WebHostBuilder()
                 .ConfigureTestServices(services => services.AddSingleton<IVerificationRequestRepository>(this.azureInMemoryRepository))
                 .UseStartup<Startup>()
-                .ConfigureAppConfiguration(configurationBuilder => configurationBuilder.AddJsonFile("appsettings.json").AddEnvironmentVariables())
+                .ConfigureAppConfiguration((hostingContext, configurationBuilder) =>
+                    configurationBuilder
+                        .AddJsonFile("appsettings.json")
+                        .AddJsonFile("appsettings.Custom.json", optional:true)
+                        .AddEnvironmentVariables())
                 .UseContentRoot(Path.GetDirectoryName(typeof(Startup).Assembly.Location));
 
             this.testServer = new TestServer(builder);
 
             this.HttpClient = this.testServer.CreateClient();
-            
+
             return Task.CompletedTask;
         }
 

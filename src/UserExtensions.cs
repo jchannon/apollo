@@ -4,9 +4,14 @@
 
     public static class UserExtensions
     {
-        public static string GetUserId(this ClaimsPrincipal principal)
+        public static string GetUserId(this ClaimsPrincipal claimsPrincipal)
         {
-            return principal.FindFirst("sub")?.Value ?? string.Empty;
+            return claimsPrincipal.FindFirst("sub")?.Value ?? string.Empty;
+        }
+
+        public static string GetUserPhoneNumber(this ClaimsPrincipal claimsPrincipal)
+        {
+            return claimsPrincipal.FindFirst("phone_number")?.Value;
         }
     }
 }

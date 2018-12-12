@@ -65,7 +65,7 @@
 
             validatedRequest.Status.Should().Be(VerificationRequestStatus.Failed);
         }
-        
+
         [Fact]
         public void ShouldAcceptCodeOnLastAttempt()
         {
@@ -75,6 +75,22 @@
             var validatedRequest = failedRequest.ValidateCode(code);
 
             validatedRequest.Status.Should().Be(VerificationRequestStatus.Confirmed);
+        }
+
+        [Fact]
+        public void ShouldBeActiveIfConfirmed()
+        {
+            var code = VerificationCode.Generate();
+            var failedRequest = new VerificationRequest("userId", VerificationType.SMS, VerificationRequestStatus.Confirmed, DateTime.MaxValue, code, 2);
+            failedRequest.IsActive().Should().BeTrue();
+        }
+
+        [Fact]
+        public void ShouldBeActiveIfPendingAndExpiryGreaterThanNow()
+        {
+            var code = VerificationCode.Generate();
+            var failedRequest = new VerificationRequest("userId", VerificationType.SMS, VerificationRequestStatus.Pending, DateTime.UtcNow.AddMinutes(1), code, 2);
+            failedRequest.IsActive().Should().BeTrue();
         }
     }
 }

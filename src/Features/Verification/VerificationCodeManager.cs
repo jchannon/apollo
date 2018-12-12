@@ -1,6 +1,7 @@
 ﻿namespace Apollo.Features.Verification
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
     using Apollo.Persistence;
 
@@ -22,8 +23,19 @@
             }
 
             var verificationRequest = VerificationRequest.GenerateNewVerificationRequest(userId, type, VerificationCode.Generate());
+
             await this.verificationRequestRepository.StoreNewVerificationRequest(verificationRequest); //todo config the time
-            await onSuccessfulGeneration(verificationRequest.Code);
+
+            try
+            {
+                await onSuccessfulGeneration(verificationRequest.Code);
+            }
+            catch (SenderException)
+            {
+                //todo add logging
+                return false;
+            }
+
             return true;
         }
 

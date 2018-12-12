@@ -2,7 +2,7 @@ namespace Apollo
 {
     using Apollo.Features.Verification;
     using Apollo.Features.Verification.Email;
-    using Apollo.Features.Verification.Phone.PhoneVerification;
+    using Apollo.Features.Verification.Phone;
     using Apollo.Persistence;
     using Apollo.Persistence.AzureStorage;
     using Apollo.Settings;
@@ -11,6 +11,7 @@ namespace Apollo
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Twilio;
 
     public class Startup
     {
@@ -19,6 +20,8 @@ namespace Apollo
         public Startup(IConfiguration configuration)
         {
             configuration.Bind(this.appSettings);
+
+            TwilioClient.Init(this.appSettings.Twilio.AccountSid, this.appSettings.Twilio.AuthToken);
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -28,12 +31,8 @@ namespace Apollo
 
             services.AddSingleton(this.appSettings);
 
-            services.AddSingleton(s => new Handler(new ICommandHandler[]
-            {
-                new PhoneVerificationCommandHandler(s.GetRequiredService<IVerificationRequestRepository>())
-            }));
-
             services.AddSingleton<MailSender>();
+            services.AddSingleton<TwilioSender>();
             services.AddSingleton<VerificationCodeManager>();
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>

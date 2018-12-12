@@ -1,49 +1,65 @@
 ﻿namespace Apollo.Features.Verification.Phone
 {
+    using System.Security.Claims;
     using System.Threading.Tasks;
-    using Apollo.Features.Verification.Phone.PhoneVerification;
-    using Apollo.Features.Verification.Phone.PhoneVerificatonSubmission;
     using Carter;
     using Carter.ModelBinding;
-    using Microsoft.AspNetCore.Http;
+    using IdentityModel;
 
     public class PhoneModule : CarterModule
     {
-        public PhoneModule(Handler handler)
+        public PhoneModule(VerificationCodeManager verificationCodeManager, TwilioSender twilioSender) : base("/phoneverification")
         {
             this.RequiresAuthentication();
 
-            this.Post("/phone-verification", async context =>
+            this.Post("/", async context =>
             {
-                var validationResult = context.Request.BindAndValidate<PhoneVerificationMessage>();
-
-                if (!validationResult.ValidationResult.IsValid)
+                if (!this.UserEmailVerified(context.User))
                 {
-                    context.Response.StatusCode = 422;
+                    context.Response.StatusCode = 400;
                     return;
                 }
 
-                var command = new PhoneVerficationCommand(validationResult.Data, context.User, context.RequestAborted);
+                if (this.UserPhoneVerified(context.User))
+                {
+                    context.Response.StatusCode = 400;
+                    return;
+                }
 
-                var domainResponse = await handler.Handle(command);
-                context.Response.StatusCode = domainResponse?.ErrorCode ?? 202;
+                var generatedSuccessfully = await verificationCodeManager.GenerateCode(VerificationType.SMS, context.User.GetUserId(), code =>
+                {
+                    twilioSender.Send(context.User.GetUserPhoneNumber(), code);
+                    return Task.CompletedTask;
+                });
 
-                await context.Response.WriteAsync("Hello World");
+                context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
             });
 
-            this.Post("/phone-verification-submission", context =>
+            this.Post("/confirmation", async context =>
             {
                 var result = context.Request.BindAndValidate<PhoneVerificationSubmission>();
 
                 if (!result.ValidationResult.IsValid)
                 {
                     context.Response.StatusCode = 422;
-                    return Task.CompletedTask;
                 }
 
-                context.Response.StatusCode = 204;
-                return Task.CompletedTask;
+                var userId = context.User.GetUserId();
+
+                var success = await verificationCodeManager.VerifyCode(VerificationType.SMS, userId, new VerificationCode(result.Data.Code));
+
+                context.Response.StatusCode = success ? 204 : 400;
             });
+        }
+
+        private bool UserEmailVerified(ClaimsPrincipal claimsPrincipal)
+        {
+            return bool.Parse(claimsPrincipal.FindFirst(JwtClaimTypes.EmailVerified)?.Value ?? "false");
+        }
+
+        private bool UserPhoneVerified(ClaimsPrincipal claimsPrincipal)
+        {
+            return bool.Parse(claimsPrincipal.FindFirst(JwtClaimTypes.PhoneNumberVerified)?.Value ?? "false");
         }
     }
 }
