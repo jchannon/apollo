@@ -12,21 +12,11 @@ namespace Apollo.Tests.Unit
     [Collection(nameof(ApolloIntegrationCollection))]
     public class MailDriverTests
     {
+        private readonly MailDriver driver;
+
         public MailDriverTests(ApolloIntegrationFixture services)
         {
             this.driver = new MailDriver(services);
-        }
-
-        private readonly MailDriver driver;
-
-        private void SendMailMessage(MailMessage message)
-        {
-            using (var client = new SmtpClient(
-                this.driver.Services.SmtpServerEndpoint.Host,
-                this.driver.Services.SmtpServerEndpoint.Port))
-            {
-                client.Send(message);
-            }
         }
 
         [Fact]
@@ -34,7 +24,6 @@ namespace Apollo.Tests.Unit
         {
             // TODO: Once templating is introduced this test should reflect that.
             // We could use our email sender implementation.
-
             var lorem = new Lorem();
             var code = lorem.Letter(5);
 
@@ -49,6 +38,16 @@ namespace Apollo.Tests.Unit
             var result = await this.driver.WaitForEmailWithConfirmationCode();
 
             Assert.Equal(code, result.Trim());
+        }
+
+        private void SendMailMessage(MailMessage message)
+        {
+            using (var client = new SmtpClient(
+                this.driver.Services.SmtpServerEndpoint.Host,
+                this.driver.Services.SmtpServerEndpoint.Port))
+            {
+                client.Send(message);
+            }
         }
     }
 }

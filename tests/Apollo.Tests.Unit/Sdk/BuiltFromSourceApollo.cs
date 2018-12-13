@@ -1,3 +1,6 @@
+// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
 namespace Apollo.Tests.Unit.Sdk
 {
     using System;
@@ -35,8 +38,8 @@ namespace Apollo.Tests.Unit.Sdk
                 Path.DirectorySeparatorChar);
 
             var arguments = Environment.OSVersion.Platform.Equals(PlatformID.Unix)
-                ? $"run -p {path} -- --smtp:host={this.smtpUri.Host} --smtp:port={this.smtpUri.Port} --identityserver:authority={authority}"
-                : $"run -p {path} --smtp:host={this.smtpUri.Host}  --smtp:port={this.smtpUri.Port} --identityserver:authority={authority}";
+                ? $"run -p {path} -- --smtp:host={this.smtpUri.Host} --smtp:port={this.smtpUri.Port} --identityserver:authority={this.authority}"
+                : $"run -p {path} --smtp:host={this.smtpUri.Host}  --smtp:port={this.smtpUri.Port} --identityserver:authority={this.authority}";
 
             this.process = Process.Start(
                 new ProcessStartInfo(

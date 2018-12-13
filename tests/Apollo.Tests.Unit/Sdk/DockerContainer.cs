@@ -263,6 +263,7 @@ namespace Apollo.Tests.Unit.Sdk
                             FromImage = this.Configuration.RegistryQualifiedImage,
                             Tag = this.Configuration.Tag
                         },
+                        #pragma warning disable SA1118
                         this.Configuration.RegistryCredentials != null
                             ? new AuthConfig
                             {

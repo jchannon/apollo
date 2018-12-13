@@ -8,20 +8,14 @@ namespace Apollo.Tests.Unit.Sdk
     using System.Threading.Tasks;
     using Ironclad.Client;
     using Ironclad.Tests.Sdk;
-    using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.Configuration;
     using Xunit;
 
     public class ApolloIntegrationFixture : AuthenticationFixture
     {
-        public const string ApolloAuthApiIdentifier = "apollo";
-        public const string ApolloAuthClientId = "apollo";
         public const string ApolloEndpointUri = "http://localhost:5006/status";
 
         private readonly MailHogContainer mailhogContainer;
         private readonly IAsyncLifetime apolloInstance;
-        private readonly AzureInMemoryRepository azureInMemoryRepository;
-        private readonly TestServer testServer;
 
         public ApolloIntegrationFixture()
         {
@@ -71,7 +65,6 @@ namespace Apollo.Tests.Unit.Sdk
             Enabled = true,
         };
 
-        // TODO: Expose all the relevant properties such that tests can connect to the various services 
         public Uri SmtpServerEndpoint { get; }
 
         public Uri SmtpServerHttpEndpoint { get; }

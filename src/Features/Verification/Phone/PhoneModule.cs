@@ -1,4 +1,7 @@
-﻿namespace Apollo.Features.Verification.Phone
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Features.Verification.Phone
 {
     using System.Security.Claims;
     using System.Threading.Tasks;
@@ -8,7 +11,8 @@
 
     public class PhoneModule : CarterModule
     {
-        public PhoneModule(VerificationCodeManager verificationCodeManager, TwilioSender twilioSender) : base("/phoneverification")
+        public PhoneModule(VerificationCodeManager verificationCodeManager, TwilioSender twilioSender)
+            : base("/phoneverification")
         {
             this.RequiresAuthentication();
 

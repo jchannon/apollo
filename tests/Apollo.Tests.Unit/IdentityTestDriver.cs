@@ -1,4 +1,7 @@
-﻿namespace Apollo.Tests.Unit
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Tests.Unit
 {
     using System;
     using System.IdentityModel.Tokens.Jwt;
@@ -13,18 +16,9 @@
     using IdentityModel.Client;
     using Ironclad.Client;
     using Ironclad.Tests.Sdk;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using Newtonsoft.Json.Serialization;
 
     public abstract class IdentityTestDriver
     {
-        protected ApolloIntegrationFixture Services { get; }
-
-        public string UserId { get; set; }
-
-        public User CurrentUser { get; set; }
-
         protected IdentityTestDriver(ApolloIntegrationFixture services)
         {
             this.Services = services ?? throw new ArgumentNullException(nameof(services));
@@ -47,6 +41,12 @@
                 PhoneNumber = phoneNumbers.PhoneNumber("+447#########")
             };
         }
+
+        public ApolloIntegrationFixture Services { get; }
+
+        public string UserId { get; set; }
+
+        public User CurrentUser { get; set; }
 
         protected HttpClient ApolloClient { get; }
 
@@ -97,19 +97,6 @@
             var token = handler.ReadJwtToken(authorizeResponse.AccessToken);
 
             this.UserId = token.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
-        }
-
-        private static JsonSerializerSettings GetJsonSerializerSettings()
-        {
-            var settings = new JsonSerializerSettings
-            {
-                ContractResolver = new DefaultContractResolver { NamingStrategy = new SnakeCaseNamingStrategy() },
-                NullValueHandling = NullValueHandling.Ignore
-            };
-
-            settings.Converters.Add(new StringEnumConverter());
-
-            return settings;
         }
     }
 }

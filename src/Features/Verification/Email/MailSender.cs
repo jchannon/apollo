@@ -1,4 +1,7 @@
-﻿namespace Apollo.Features.Verification.Email
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Features.Verification.Email
 {
     using System.Net.Mail;
     using Apollo.Settings;
@@ -16,7 +19,8 @@
         {
             using (var message = new MailMessage("test@example.com", toAddress)
             {
-                Body = code.ToString()
+                Body = code.ToString(),
+                Subject = "Your Lykke Confirmation Code",
             })
             {
                 this.SendMailMessage(message);

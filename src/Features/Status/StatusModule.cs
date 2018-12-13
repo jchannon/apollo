@@ -1,4 +1,7 @@
-﻿namespace Apollo.Features.Status
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Features.Status
 {
     using System.Threading.Tasks;
     using Carter;

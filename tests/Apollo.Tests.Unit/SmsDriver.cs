@@ -1,4 +1,7 @@
-﻿namespace Apollo.Tests.Unit
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Tests.Unit
 {
     using System;
     using System.Net.Http;
@@ -10,7 +13,8 @@
 
     public class SmsDriver : IdentityTestDriver
     {
-        public SmsDriver(ApolloIntegrationFixture services) : base(services)
+        public SmsDriver(ApolloIntegrationFixture services)
+            : base(services)
         {
         }
 
@@ -27,16 +31,16 @@
             return request.Code.ToString();
         }
 
-        public async Task<HttpResponseMessage> SubmitVerificationCode(string code)
+        public async Task<HttpResponseMessage> SubmitVerificationCode(string verificationCode)
         {
-            return await this.Services.ApolloClient.PostAsync("/phoneverification/confirmation",
-                new StringContent(JsonConvert.SerializeObject(new { code = code }), Encoding.UTF8, "application/json"));
+            return await this.Services.ApolloClient.PostAsync(
+                "/phoneverification/confirmation",
+                new StringContent(JsonConvert.SerializeObject(new { code = verificationCode }), Encoding.UTF8, "application/json"));
         }
 
         public void CheckPhoneIsVerified()
         {
-            //todo figure out how to check the status of phone verified claim
-            throw new Exception();
+            throw new Exception("figure out how to check the status of phone verified claim");
         }
     }
 }

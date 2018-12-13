@@ -1,4 +1,7 @@
-﻿namespace Apollo.Features.Verification.Email
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Features.Verification.Email
 {
     using System.Threading.Tasks;
     using Carter;
@@ -13,7 +16,8 @@
 
         private readonly VerificationCodeManager verificationCodeManager;
 
-        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender) : base("/emailverification")
+        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender)
+            : base("/emailverification")
         {
             this.verificationCodeManager = verificationCodeManager;
             this.sender = sender;
@@ -35,16 +39,16 @@
                 return;
             }
 
-           var generatedSuccessfully = await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, code =>
+            var generatedSuccessfully = await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, code =>
             {
                 this.sender.SendConfirmationCode(this.GetUserEmail(context), code);
 
                 return Task.CompletedTask;
             });
-            
+
             context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
         }
-        
+
         private async Task ConfirmVerificationCode(HttpContext context)
         {
             var result = context.Request.BindAndValidate<EmailConfirmationCodeModel>();

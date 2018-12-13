@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "documentationRules": {
+      "xmlHeader": false,
+      "copyrightText": "Copyright (c) Lykke Corp.\r\nSee the LICENSE file in the project root for more information.",
+      "documentInterfaces": false,
+      "documentInternalElements": false,
+      "documentExposedElements": false
+    }
+  }
+}

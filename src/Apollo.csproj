@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <UserSecretsId>36e48e2c-c27c-402f-b564-98848ffa0dc9</UserSecretsId>
+    <NoWarn>$(NoWarn);SA1652</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Carter" Version="3.8.0" />
@@ -17,6 +18,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.2" />
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
     <PackageReference Include="Twilio" Version="5.22.0" />
+
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\stylecop.json" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="appsettings.json" />
@@ -26,7 +32,8 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Update="appsettings.Custom.json">
+    <Content Update="appsettings.Custom.json" />
+    <Content Include="appsettings.Custom.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>

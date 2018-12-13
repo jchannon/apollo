@@ -16,15 +16,12 @@ namespace Apollo.Tests.Unit
 
     public class MailDriver : IdentityTestDriver
     {
-        public MailDriver(ApolloIntegrationFixture services) : base(services)
+        public MailDriver(ApolloIntegrationFixture services)
+            : base(services)
         {
-            this.Services = services ?? throw new ArgumentNullException(nameof(services));
-
             var internet = new Internet();
             this.FromEmailAddress = new MailAddress(internet.Email());
         }
-
-        public ApolloIntegrationFixture Services { get; }
 
         public MailAddress FromEmailAddress { get; }
 
@@ -49,7 +46,7 @@ namespace Apollo.Tests.Unit
 
                     var messages = await MailHogMessage.FromResponse(response.EnsureSuccessStatusCode());
 
-                    //TODO: Improve the predicate to match on more specific attributes. 
+                    // TODO: Improve the predicate to match on more specific attributes.
                     message = messages.OrderByDescending(m => m.Created).FirstOrDefault(m => m.To.Any(to => to.Equals(new MailAddress(this.CurrentUser.Email))));
                     if (message == null)
                     {
@@ -71,21 +68,21 @@ namespace Apollo.Tests.Unit
             return await this.Services.ApolloClient.PostAsJsonAsync("/emailVerification/confirmation", request);
         }
 
-        public async Task WaitForEmailToBeVerified()
+        public Task WaitForEmailToBeVerified()
         {
             throw new Exception();
         }
 
         private class MailHogMessage
         {
-            public string ID { get; private set; }
+            public string Id { get; private set; }
 
             public MailAddress From { get; private set; }
 
             public MailAddress[] To { get; private set; }
 
             public string Body { get; private set; }
-            
+
             public DateTime? Created { get; private set; }
 
             public static async Task<MailHogMessage[]> FromResponse(HttpResponseMessage response)
@@ -165,7 +162,7 @@ namespace Apollo.Tests.Unit
                     switch (json.Value)
                     {
                         case "ID":
-                            message.ID = await json.ReadAsStringAsync();
+                            message.Id = await json.ReadAsStringAsync();
                             break;
                         case "From":
                             message.From = await ReadMailAddress();
@@ -194,7 +191,6 @@ namespace Apollo.Tests.Unit
 
                 return message;
             }
-
         }
     }
 }

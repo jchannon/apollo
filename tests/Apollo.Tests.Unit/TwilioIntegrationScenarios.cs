@@ -1,4 +1,7 @@
-﻿namespace Apollo.Tests.Unit
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Tests.Unit
 {
     using System.Net;
     using System.Net.Http;

@@ -1,7 +1,9 @@
-﻿namespace Apollo.Features.Verification
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Features.Verification
 {
     using System;
-    using System.IO;
     using System.Threading.Tasks;
     using Apollo.Persistence;
 
@@ -24,7 +26,7 @@
 
             var verificationRequest = VerificationRequest.GenerateNewVerificationRequest(userId, type, VerificationCode.Generate());
 
-            await this.verificationRequestRepository.StoreNewVerificationRequest(verificationRequest); //todo config the time
+            await this.verificationRequestRepository.StoreNewVerificationRequest(verificationRequest); // todo config the time KYC-43
 
             try
             {
@@ -32,7 +34,7 @@
             }
             catch (SenderException)
             {
-                //todo add logging
+                // todo add logging KYC-41
                 return false;
             }
 
@@ -52,7 +54,7 @@
 
             await this.verificationRequestRepository.UpdateAttemptedRequest(validatedRequest);
 
-            //todo problem+json stuff
+            // todo problem+json stuff KYC-36
             return validatedRequest.Status == VerificationRequestStatus.Confirmed;
         }
     }

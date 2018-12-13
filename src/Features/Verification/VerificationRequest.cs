@@ -1,11 +1,18 @@
-﻿namespace Apollo.Features.Verification
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Features.Verification
 {
     using System;
 
     public class VerificationRequest
     {
-        public VerificationRequest(string userId, VerificationType verificationType, VerificationRequestStatus status,
-            DateTime expiryDate, VerificationCode code,
+        public VerificationRequest(
+            string userId,
+            VerificationType verificationType,
+            VerificationRequestStatus status,
+            DateTime expiryDate,
+            VerificationCode code,
             int attempts)
         {
             this.UserId = userId;
@@ -40,7 +47,7 @@
                 throw new ArgumentNullException(nameof(code));
             }
 
-            //todo configure expiry time
+            // todo configure expiry time KYC-43
             return new VerificationRequest(userId, vericationType, VerificationRequestStatus.Pending, DateTime.UtcNow.Add(TimeSpan.FromMinutes(15)), code, 0);
         }
 
@@ -58,7 +65,6 @@
 
         public VerificationRequest ValidateCode(VerificationCode code)
         {
-            //todo the logic is a bit dodgy here, should be properly immutable
             var validatedRequest = new VerificationRequest(this.UserId, this.VerificationType, this.Status, this.ExpiryDate, this.Code, this.Attempts);
             validatedRequest.Attempts++;
 
@@ -66,7 +72,7 @@
             {
                 return validatedRequest;
             }
-            
+
             if (this.ExpiryDate < DateTime.UtcNow)
             {
                 validatedRequest.Status = VerificationRequestStatus.Expired;

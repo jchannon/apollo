@@ -1,3 +1,6 @@
+// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
 namespace Apollo.Tests.Unit
 {
     using System.Collections.Generic;
@@ -7,19 +10,19 @@ namespace Apollo.Tests.Unit
 
     public class AzureInMemoryRepository : IVerificationRequestRepository
     {
-        private static readonly Dictionary<(string userId, VerificationType type), VerificationRequest> inMemDataStore = new Dictionary<(string userId, VerificationType type), VerificationRequest>();
+        private static readonly Dictionary<(string userId, VerificationType type), VerificationRequest> InMemDataStore = new Dictionary<(string userId, VerificationType type), VerificationRequest>();
 
         public Task StoreNewVerificationRequest(VerificationRequest verificationRequest)
         {
-            inMemDataStore[(verificationRequest.UserId, verificationRequest.VerificationType)] = verificationRequest;
+            InMemDataStore[(verificationRequest.UserId, verificationRequest.VerificationType)] = verificationRequest;
             return Task.CompletedTask;
         }
 
         public Task<VerificationRequest> GetVerificationRequest(VerificationType type, string userId)
         {
-            if (inMemDataStore.ContainsKey((userId, type)))
+            if (InMemDataStore.ContainsKey((userId, type)))
             {
-                return Task.FromResult(inMemDataStore[(userId, type)]);
+                return Task.FromResult(InMemDataStore[(userId, type)]);
             }
 
             return Task.FromResult<VerificationRequest>(null);
@@ -27,9 +30,9 @@ namespace Apollo.Tests.Unit
 
         public Task UpdateAttemptedRequest(VerificationRequest storedCodeRequest)
         {
-            if (inMemDataStore.ContainsKey((storedCodeRequest.UserId, storedCodeRequest.VerificationType)))
+            if (InMemDataStore.ContainsKey((storedCodeRequest.UserId, storedCodeRequest.VerificationType)))
             {
-                inMemDataStore[(storedCodeRequest.UserId, storedCodeRequest.VerificationType)] = storedCodeRequest;
+                InMemDataStore[(storedCodeRequest.UserId, storedCodeRequest.VerificationType)] = storedCodeRequest;
             }
 
             return Task.CompletedTask;

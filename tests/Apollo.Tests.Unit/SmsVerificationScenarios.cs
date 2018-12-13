@@ -1,4 +1,7 @@
-﻿namespace Apollo.Tests.Unit
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Tests.Unit
 {
     using System.Net;
     using System.Net.Http;
@@ -42,8 +45,7 @@
         }
 
         [Scenario]
-        public void Providing_incorrect_code_three_times(string invalidCode, HttpResponseMessage verificationRequestResponse,
-            HttpResponseMessage verificationSubmissionResponse)
+        public void Providing_incorrect_code_three_times(string invalidCode, HttpResponseMessage verificationRequestResponse, HttpResponseMessage verificationSubmissionResponse)
         {
             "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });
 
@@ -57,7 +59,7 @@
 
             "And I submit the invalid confirmation code to be verified".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode); });
 
-            "Then the confirmation response is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest)); //todo problem+json parsing
+            "Then the confirmation response is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest)); // todo problem+json parsing KYC-36
 
             "And I submit the invalid confirmation code to be verified a second time".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode); });
 
@@ -71,8 +73,7 @@
         }
 
         [Scenario]
-        public void Providing_correct_code_after_three_incorrect_attempts(string validCode, HttpResponseMessage verificationRequestResponse, string invalidCode,
-            HttpResponseMessage verificationSubmissionResponse)
+        public void Providing_correct_code_after_three_incorrect_attempts(string validCode, HttpResponseMessage verificationRequestResponse, string invalidCode, HttpResponseMessage verificationSubmissionResponse)
         {
             "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });
 
@@ -117,13 +118,17 @@
             "Then the code is rejected".x(() =>
             {
                 verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
                 // todo assert body contains correct problem+json info
             });
         }
 
         [Scenario]
-        public void Providing_incorrect_code_three_times_and_then_succeeding_with_new_code(HttpResponseMessage verificationRequestResponse, string oldCode,
-            HttpResponseMessage verificationSubmissionResponse, string invalidCode, string newCode)
+        public void Providing_incorrect_code_three_times_and_then_succeeding_with_new_code(
+            HttpResponseMessage verificationRequestResponse,
+            HttpResponseMessage verificationSubmissionResponse,
+            string invalidCode,
+            string newCode)
         {
             "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });
 
@@ -133,7 +138,7 @@
 
             "And the request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
-            "And I wait for the email confirmation code".x(async () => { oldCode = await this.smsDriver.WaitForSMS(); });
+            "And I wait for the email confirmation code".x(async () => { await this.smsDriver.WaitForSMS(); });
 
             "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
 
@@ -163,8 +168,11 @@
         }
 
         [Scenario]
-        public void Providing_incorrect_code_three_times_and_request_new_code_and_try_with_old_code(HttpResponseMessage verificationRequestResponse, string oldCode,
-            HttpResponseMessage verificationSubmissionResponse, string invalidCode, string newCode)
+        public void Providing_incorrect_code_three_times_and_request_new_code_and_try_with_old_code(
+            HttpResponseMessage verificationRequestResponse,
+            string oldCode,
+            HttpResponseMessage verificationSubmissionResponse,
+            string invalidCode)
         {
             "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });
 
@@ -194,7 +202,7 @@
 
             "The request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
-            "And I wait for the confirmation code".x(async () => { newCode = await this.smsDriver.WaitForSMS(); });
+            "And I wait for the confirmation code".x(async () => { await this.smsDriver.WaitForSMS(); });
 
             "And I submit the old code to be verified".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(oldCode); });
 
@@ -202,7 +210,10 @@
         }
 
         [Scenario]
-        public void Requesting_a_new_code_when_old_code_is_still_valid(HttpResponseMessage verificationRequestResponse, string code, HttpResponseMessage invalidVerificationRequestResponse,
+        public void Requesting_a_new_code_when_old_code_is_still_valid(
+            HttpResponseMessage verificationRequestResponse,
+            string code,
+            HttpResponseMessage invalidVerificationRequestResponse,
             HttpResponseMessage verificationSubmissionResponse)
         {
             "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });

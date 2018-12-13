@@ -1,4 +1,7 @@
-﻿namespace Apollo.Tests.Unit.Sdk
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Tests.Unit.Sdk
 {
     using System;
     using System.IO;
@@ -23,14 +26,14 @@
 
         private AzureInMemoryRepository azureInMemoryRepository;
 
-        public HttpClient HttpClient { get; private set; }
-
         public InMemoryApollo(string smtphost, string smtpport, string identityAuthority)
         {
             this.smtphost = smtphost;
             this.smtpport = smtpport;
             this.identityAuthority = identityAuthority;
         }
+
+        public HttpClient HttpClient { get; private set; }
 
         public Task InitializeAsync()
         {
@@ -48,7 +51,7 @@
                 .ConfigureAppConfiguration((hostingContext, configurationBuilder) =>
                     configurationBuilder
                         .AddJsonFile("appsettings.json")
-                        .AddJsonFile("appsettings.Custom.json", optional:true)
+                        .AddJsonFile("appsettings.Custom.json", optional: true)
                         .AddEnvironmentVariables())
                 .UseContentRoot(Path.GetDirectoryName(typeof(Startup).Assembly.Location));
 

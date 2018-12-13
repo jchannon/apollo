@@ -1,4 +1,7 @@
-﻿namespace Apollo.Persistence.AzureStorage
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Apollo.Persistence.AzureStorage
 {
     using System;
     using System.Threading.Tasks;
@@ -40,8 +43,13 @@
 
             var result = (VerificationRequestEntity)tableResult.Result;
 
-            return new VerificationRequest(result.UserId, Enum.Parse<VerificationType>(result.VerificationType),
-                (VerificationRequestStatus)result.Status, result.ExpirationDate, new VerificationCode(result.Code), result.Attempts);
+            return new VerificationRequest(
+                result.UserId,
+                Enum.Parse<VerificationType>(result.VerificationType),
+                (VerificationRequestStatus)result.Status,
+                result.ExpirationDate,
+                new VerificationCode(result.Code),
+                result.Attempts);
         }
 
         public async Task UpdateAttemptedRequest(VerificationRequest storedCodeRequest)
@@ -57,7 +65,7 @@
 
             var entity = new VerificationRequestEntity(storedCodeRequest)
             {
-                ETag = existingEntry.Etag
+                ETag = existingEntry.Etag,
             };
 
             await table.ExecuteAsync(TableOperation.Replace(entity));
@@ -69,7 +77,7 @@
 
             var cloudTable = cloudTableClient.GetTableReference(TableName);
 
-            //todo CreateIfNotExists is slow, move it out to startup.
+            // todo CreateIfNotExists is slow, move it out to startup.
             await cloudTable.CreateIfNotExistsAsync();
 
             return cloudTable;
