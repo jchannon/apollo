@@ -6,14 +6,18 @@ namespace Apollo.Features.Verification
     using System;
     using System.Threading.Tasks;
     using Apollo.Persistence;
+    using Microsoft.Extensions.Logging;
 
     public class VerificationCodeManager
     {
         private readonly IVerificationRequestRepository verificationRequestRepository;
 
-        public VerificationCodeManager(IVerificationRequestRepository verificationRequestRepository)
+        private readonly ILogger<VerificationCodeManager> logger;
+
+        public VerificationCodeManager(IVerificationRequestRepository verificationRequestRepository, ILogger<VerificationCodeManager> logger)
         {
             this.verificationRequestRepository = verificationRequestRepository;
+            this.logger = logger;
         }
 
         public async Task<bool> GenerateCode(VerificationType type, string userId, Func<VerificationCode, Task> onSuccessfulGeneration)
@@ -21,6 +25,7 @@ namespace Apollo.Features.Verification
             var outstandingRequest = await this.verificationRequestRepository.GetVerificationRequest(type, userId);
             if (outstandingRequest != null && outstandingRequest.IsActive())
             {
+                this.logger.LogInformation("User {userId} tried to request an active code when one was already available", userId);
                 return false;
             }
 
@@ -34,7 +39,7 @@ namespace Apollo.Features.Verification
             }
             catch (SenderException)
             {
-                // todo add logging KYC-41
+                this.logger.LogWarning("Failed to dispatch verification code to user");
                 return false;
             }
 
@@ -47,6 +52,7 @@ namespace Apollo.Features.Verification
 
             if (storedCodeRequest == null)
             {
+                this.logger.LogWarning("User ({userId}) tried to verify a code that hasn't been requested", userId);
                 return false;
             }
 

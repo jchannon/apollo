@@ -7,20 +7,23 @@ namespace Apollo.Features.Verification.Email
     using Carter;
     using Carter.ModelBinding;
     using Carter.Response;
-    using IdentityModel;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Logging;
 
     public class EmailVerificationModule : CarterModule
     {
         private readonly MailSender sender;
 
+        private readonly ILogger<EmailVerificationModule> logger;
+
         private readonly VerificationCodeManager verificationCodeManager;
 
-        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender)
+        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender, ILogger<EmailVerificationModule> logger)
             : base("/emailverification")
         {
             this.verificationCodeManager = verificationCodeManager;
             this.sender = sender;
+            this.logger = logger;
 
             this.RequiresAuthentication();
 
@@ -33,17 +36,17 @@ namespace Apollo.Features.Verification.Email
         {
             var userId = context.User.GetUserId();
 
-            if (this.GetUserEmailVerified(context))
+            if (context.User.IsEmailVerified())
             {
+                this.logger.LogInformation("User {userId} tried to verify their email when it's already verified", userId);
+
                 context.Response.StatusCode = 400;
                 return;
             }
 
-            var generatedSuccessfully = await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, code =>
+            var generatedSuccessfully = await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, async code =>
             {
-                this.sender.SendConfirmationCode(this.GetUserEmail(context), code);
-
-                return Task.CompletedTask;
+                await this.sender.SendConfirmationCode(context.User.GetEmail(), code);
             });
 
             context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
@@ -51,30 +54,21 @@ namespace Apollo.Features.Verification.Email
 
         private async Task ConfirmVerificationCode(HttpContext context)
         {
-            var result = context.Request.BindAndValidate<EmailConfirmationCodeModel>();
+            var(validationResult, data) = context.Request.BindAndValidate<EmailConfirmationCodeModel>();
 
-            if (!result.ValidationResult.IsValid)
+            if (!validationResult.IsValid)
             {
+                this.logger.LogInformation("User sent an invalid payload ({validationResult}) when trying to verify the code", validationResult);
                 context.Response.StatusCode = 422;
-                await context.Response.Negotiate(result.ValidationResult.GetFormattedErrors());
+                await context.Response.Negotiate(validationResult.GetFormattedErrors());
                 return;
             }
 
             var userId = context.User.GetUserId();
 
-            var success = await this.verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(result.Data.Code));
+            var success = await this.verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(data.Code));
 
             context.Response.StatusCode = success ? 204 : 400;
-        }
-
-        private string GetUserEmail(HttpContext context)
-        {
-            return context.User.FindFirst(JwtClaimTypes.Email)?.Value;
-        }
-
-        private bool GetUserEmailVerified(HttpContext context)
-        {
-            return bool.Parse(context.User.FindFirst(JwtClaimTypes.EmailVerified)?.Value ?? "false");
         }
     }
 }

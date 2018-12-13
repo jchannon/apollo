@@ -3,22 +3,46 @@
 
 namespace Apollo
 {
+    using System;
     using System.IO;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Serilog;
+    using Serilog.Events;
 
     internal class Program
     {
-        private static async Task Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
-            await WebHost.CreateDefaultBuilder<Startup>(args)
+            var webHost = WebHost.CreateDefaultBuilder<Startup>(args)
                 .UseUrls("http://+:5006")
                 .ConfigureAppConfiguration(x => x.AddJsonFile("appsettings.Custom.json", optional: true))
                 .UseContentRoot(Path.GetDirectoryName(typeof(Program).Assembly.Location))
-                .Build()
-                .RunAsync();
+                .UseSerilog((context, configuration) =>
+                    configuration.WriteTo.Console(outputTemplate: "[{InstanceId}] [{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                    .Enrich.FromLogContext()
+                    .Enrich.WithMachineName()
+                    .ReadFrom.Configuration(context.Configuration))
+                .Build();
+
+            try
+            {
+                Log.Information("Starting webhost");
+                await webHost.RunAsync();
+                return 0;
+            }
+            catch (Exception e)
+            {
+                Log.Fatal(e, "Host terminated unexpectedly");
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
     }
 }

@@ -3,37 +3,58 @@
 
 namespace Apollo.Features.Verification.Email
 {
+    using System;
+    using System.Net;
     using System.Net.Mail;
+    using System.Threading.Tasks;
     using Apollo.Settings;
+    using Microsoft.Extensions.Logging;
 
     public class MailSender
     {
         private readonly AppSettings appSettings;
 
-        public MailSender(AppSettings appSettings)
+        private readonly ILogger<MailSender> logger;
+
+        public MailSender(AppSettings appSettings, ILogger<MailSender> logger)
         {
             this.appSettings = appSettings;
+            this.logger = logger;
         }
 
-        public void SendConfirmationCode(string toAddress, VerificationCode code)
+        public async Task SendConfirmationCode(string toAddress, VerificationCode code)
         {
-            using (var message = new MailMessage("test@example.com", toAddress)
+            using (var message = new MailMessage("test@example.com", toAddress) // todo configure from address
             {
                 Body = code.ToString(),
                 Subject = "Your Lykke Confirmation Code",
             })
             {
-                this.SendMailMessage(message);
+                await this.SendMailMessage(message);
             }
         }
 
-        private void SendMailMessage(MailMessage message)
+        private async Task SendMailMessage(MailMessage message)
         {
-            using (var client = new SmtpClient(
-                this.appSettings.Smtp.Host,
-                this.appSettings.Smtp.Port))
+            try
             {
-                client.Send(message);
+                using (var client = new SmtpClient(
+                    this.appSettings.Smtp.Host,
+                    this.appSettings.Smtp.Port))
+                {
+                    if (!string.IsNullOrWhiteSpace(this.appSettings.Smtp.Username))
+                    {
+                        this.logger.LogDebug("Using smtp credentials");
+                        client.Credentials = new NetworkCredential(this.appSettings.Smtp.Username, this.appSettings.Smtp.Password);
+                    }
+
+                    await client.SendMailAsync(message);
+                }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError(e, "Could not send verification email");
+                throw;
             }
         }
     }

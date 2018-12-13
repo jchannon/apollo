@@ -3,67 +3,78 @@
 
 namespace Apollo.Features.Verification.Phone
 {
-    using System.Security.Claims;
     using System.Threading.Tasks;
     using Carter;
     using Carter.ModelBinding;
-    using IdentityModel;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Logging;
 
     public class PhoneModule : CarterModule
     {
-        public PhoneModule(VerificationCodeManager verificationCodeManager, TwilioSender twilioSender)
+        private readonly VerificationCodeManager verificationCodeManager;
+
+        private readonly TwilioSender twilioSender;
+
+        private readonly ILogger<PhoneModule> logger;
+
+        public PhoneModule(VerificationCodeManager verificationCodeManager, TwilioSender twilioSender, ILogger<PhoneModule> logger)
             : base("/phoneverification")
         {
+            this.verificationCodeManager = verificationCodeManager;
+            this.twilioSender = twilioSender;
+            this.logger = logger;
             this.RequiresAuthentication();
 
-            this.Post("/", async context =>
-            {
-                if (!this.UserEmailVerified(context.User))
-                {
-                    context.Response.StatusCode = 400;
-                    return;
-                }
+            this.Post("/", this.SendSmsConfirmationCode);
 
-                if (this.UserPhoneVerified(context.User))
-                {
-                    context.Response.StatusCode = 400;
-                    return;
-                }
-
-                var generatedSuccessfully = await verificationCodeManager.GenerateCode(VerificationType.SMS, context.User.GetUserId(), code =>
-                {
-                    twilioSender.Send(context.User.GetUserPhoneNumber(), code);
-                    return Task.CompletedTask;
-                });
-
-                context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
-            });
-
-            this.Post("/confirmation", async context =>
-            {
-                var result = context.Request.BindAndValidate<PhoneVerificationSubmission>();
-
-                if (!result.ValidationResult.IsValid)
-                {
-                    context.Response.StatusCode = 422;
-                }
-
-                var userId = context.User.GetUserId();
-
-                var success = await verificationCodeManager.VerifyCode(VerificationType.SMS, userId, new VerificationCode(result.Data.Code));
-
-                context.Response.StatusCode = success ? 204 : 400;
-            });
+            this.Post("/confirmation", this.ConfirmSmsConfirmationCode);
         }
 
-        private bool UserEmailVerified(ClaimsPrincipal claimsPrincipal)
+        private async Task SendSmsConfirmationCode(HttpContext context)
         {
-            return bool.Parse(claimsPrincipal.FindFirst(JwtClaimTypes.EmailVerified)?.Value ?? "false");
+            var userId = context.User.GetUserId();
+
+            if (!context.User.IsEmailVerified())
+            {
+                this.logger.LogInformation("User {userId} tried to verify their phone number without verifying their email", userId);
+
+                context.Response.StatusCode = 400;
+                return;
+            }
+
+            if (context.User.IsUserPhoneVerified())
+            {
+                this.logger.LogInformation("User {userId} tried to verify their phone number when it's already verified", userId);
+
+                context.Response.StatusCode = 400;
+                return;
+            }
+
+            var generatedSuccessfully = await this.verificationCodeManager.GenerateCode(VerificationType.SMS, userId, code =>
+            {
+                this.twilioSender.Send(context.User.GetUserPhoneNumber(), code);
+                return Task.CompletedTask;
+            });
+
+            context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
         }
 
-        private bool UserPhoneVerified(ClaimsPrincipal claimsPrincipal)
+        private async Task ConfirmSmsConfirmationCode(HttpContext context)
         {
-            return bool.Parse(claimsPrincipal.FindFirst(JwtClaimTypes.PhoneNumberVerified)?.Value ?? "false");
+            var(validationResult, data) = context.Request.BindAndValidate<PhoneVerificationSubmission>();
+
+            if (!validationResult.IsValid)
+            {
+                this.logger.LogInformation("User sent an invalid payload ({validationResult}) when trying to verify the code", validationResult);
+
+                context.Response.StatusCode = 422;
+            }
+
+            var userId = context.User.GetUserId();
+
+            var success = await this.verificationCodeManager.VerifyCode(VerificationType.SMS, userId, new VerificationCode(data.Code));
+
+            context.Response.StatusCode = success ? 204 : 400;
         }
     }
 }

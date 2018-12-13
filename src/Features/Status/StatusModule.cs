@@ -10,7 +10,7 @@ namespace Apollo.Features.Status
     {
         public StatusModule()
         {
-            this.Get("/status", context => Task.CompletedTask);
+            this.Get("/status", context => Task.CompletedTask); // todo KYC-45
         }
     }
 }
