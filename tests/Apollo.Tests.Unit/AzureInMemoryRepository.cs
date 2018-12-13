@@ -3,6 +3,7 @@
 
 namespace Apollo.Tests.Unit
 {
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Apollo.Features.Verification;
@@ -10,7 +11,7 @@ namespace Apollo.Tests.Unit
 
     public class AzureInMemoryRepository : IVerificationRequestRepository
     {
-        private static readonly Dictionary<(string userId, VerificationType type), VerificationRequest> InMemDataStore = new Dictionary<(string userId, VerificationType type), VerificationRequest>();
+        private static readonly ConcurrentDictionary<(string userId, VerificationType type), VerificationRequest> InMemDataStore = new ConcurrentDictionary<(string userId, VerificationType type), VerificationRequest>();
 
         public Task StoreNewVerificationRequest(VerificationRequest verificationRequest)
         {
@@ -20,12 +21,7 @@ namespace Apollo.Tests.Unit
 
         public Task<VerificationRequest> GetVerificationRequest(VerificationType type, string userId)
         {
-            if (InMemDataStore.ContainsKey((userId, type)))
-            {
-                return Task.FromResult(InMemDataStore[(userId, type)]);
-            }
-
-            return Task.FromResult<VerificationRequest>(null);
+            return InMemDataStore.ContainsKey((userId, type)) ? Task.FromResult(InMemDataStore[(userId, type)]) : Task.FromResult<VerificationRequest>(null);
         }
 
         public Task UpdateAttemptedRequest(VerificationRequest storedCodeRequest)

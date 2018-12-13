@@ -38,7 +38,7 @@ namespace Apollo.Tests.Unit
                 Username = email,
                 Password = internet.Password(),
                 Email = email,
-                PhoneNumber = phoneNumbers.PhoneNumber("+447#########")
+                PhoneNumber = phoneNumbers.PhoneNumber("+447974######")
             };
         }
 
