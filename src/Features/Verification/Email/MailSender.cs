@@ -24,7 +24,7 @@ namespace Apollo.Features.Verification.Email
 
         public async Task SendConfirmationCode(string toAddress, VerificationCode code)
         {
-            using (var message = new MailMessage("test@example.com", toAddress) // todo configure from address
+            using (var message = new MailMessage("joe.stead@lykke.com", toAddress) // todo configure from address
             {
                 Body = code.ToString(),
                 Subject = "Your Lykke Confirmation Code",
@@ -40,12 +40,17 @@ namespace Apollo.Features.Verification.Email
             {
                 using (var client = new SmtpClient(
                     this.appSettings.Smtp.Host,
-                    this.appSettings.Smtp.Port))
+                    this.appSettings.Smtp.Port)
+                {
+                    EnableSsl = this.appSettings.Smtp.EnableSSL
+                })
                 {
                     if (!string.IsNullOrWhiteSpace(this.appSettings.Smtp.Username))
                     {
                         this.logger.LogDebug("Using smtp credentials");
+                        client.UseDefaultCredentials = false;
                         client.Credentials = new NetworkCredential(this.appSettings.Smtp.Username, this.appSettings.Smtp.Password);
+                        client.DeliveryMethod = SmtpDeliveryMethod.Network;
                     }
 
                     await client.SendMailAsync(message);
