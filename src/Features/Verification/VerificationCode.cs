@@ -46,6 +46,11 @@ namespace Apollo.Features.Verification
             }
         }
 
+        public static bool IsWellformed(string value)
+        {
+            return !string.IsNullOrEmpty(value) && value.Length == FixedLength && value.All(char.IsDigit);
+        }
+
         public bool Equals(VerificationCode other) => other != null && other.value == this.value;
 
         public override bool Equals(object obj) => obj is VerificationCode other && this.Equals(other);

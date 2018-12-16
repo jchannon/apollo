@@ -43,6 +43,28 @@ namespace Apollo.Tests.Unit
             Assert.Throws<ArgumentException>(() => new VerificationCode(value));
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("00000")]
+        [InlineData("000000")]
+        [InlineData("A000")]
+        [InlineData("0A00")]
+        [InlineData("00A0")]
+        [InlineData("000A")]
+        public void VerificationCodeIsNotWellformed(string value)
+        {
+            Assert.False(VerificationCode.IsWellformed(value));
+        }
+        
+        [Theory]
+        [InlineData("0000")]
+        [InlineData("1234")]
+        public void VerificationCodeIsWellformed(string value)
+        {
+            Assert.True(VerificationCode.IsWellformed(value));
+        }
+
         [Fact]
         public void DoesEqualSelf()
         {

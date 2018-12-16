@@ -9,7 +9,9 @@ namespace Apollo.Features.Verification.Phone
     {
         public PhoneVerificationSubmissionValidator()
         {
-            this.RuleFor(x => x.Code).NotEmpty();
+            this.RuleFor(x => x.Code)
+                .Must(VerificationCode.IsWellformed)
+                .WithMessage("The verification code is not well formed, meaning not a 4 digit code.");
         }
     }
 }
