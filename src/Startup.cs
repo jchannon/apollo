@@ -3,6 +3,7 @@
 
 namespace Apollo
 {
+    using System;
     using Apollo.Features.Verification;
     using Apollo.Features.Verification.Email;
     using Apollo.Features.Verification.Phone;
@@ -10,6 +11,7 @@ namespace Apollo
     using Apollo.Persistence.AzureStorage;
     using Apollo.Settings;
     using Carter;
+    using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.Configuration;
@@ -34,22 +36,30 @@ namespace Apollo
 
             services.AddSingleton(this.appSettings);
 
+            services.AddSingleton<IroncladClaimUpdater>();
             services.AddSingleton<MailSender>();
             services.AddSingleton<TwilioSender>();
             services.AddSingleton<VerificationCodeManager>();
+
+            services.AddHttpClient(Constants.IroncladClient, client => { client.BaseAddress = new Uri(this.appSettings.IdentityServer.Authority); });
+
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
-                .AddIdentityServerAuthentication(options =>
+                .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme, options =>
                 {
                     options.Authority = this.appSettings.IdentityServer.Authority;
-                    options.ApiName = this.appSettings.IdentityServer.ApiName;
-                    options.ApiSecret = this.appSettings.IdentityServer.ApiSecret;
+                    options.Audience = this.appSettings.IdentityServer.Authority + "/resources";
                     options.RequireHttpsMetadata = false;
+                }, moreoptions =>
+                {
+                    moreoptions.Authority = this.appSettings.IdentityServer.Authority;
+                    moreoptions.DiscoveryPolicy = new DiscoveryPolicy
+                        { ValidateIssuerName = false };
+                    moreoptions.ClientId = this.appSettings.IdentityServer.ApiName;
+                    moreoptions.ClientSecret = this.appSettings.IdentityServer.ApiSecret;
 
-                    if (this.appSettings.IdentityServer.CacheTimeout.TotalMilliseconds > 0)
-                    {
-                        options.EnableCaching = true;
-                        options.CacheDuration = this.appSettings.IdentityServer.CacheTimeout;
-                    }
+                    //TODO Reference tokens don't seem to like caching turned on
+                    moreoptions.EnableCaching = false;
+                    moreoptions.CacheDuration = this.appSettings.IdentityServer.CacheTimeout;
                 });
 
             services.AddCarter();

@@ -3,12 +3,12 @@
 
 namespace Apollo.Tests.Unit
 {
-    using System;
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
     using Apollo.Features.Verification;
     using Apollo.Tests.Unit.Sdk;
+    using IdentityModel;
     using Newtonsoft.Json;
 
     public class SmsDriver : IdentityTestDriver
@@ -26,7 +26,7 @@ namespace Apollo.Tests.Unit
         public async Task<string> WaitForSMS()
         {
             var repo = new AzureInMemoryRepository();
-            var request = await repo.GetVerificationRequest(VerificationType.SMS, this.UserId);
+            var request = await repo.GetVerificationRequest(VerificationType.SMS, this.CurrentUser.Id);
 
             return request.Code.ToString();
         }
@@ -38,9 +38,10 @@ namespace Apollo.Tests.Unit
                 new StringContent(JsonConvert.SerializeObject(new { code = verificationCode }), Encoding.UTF8, "application/json"));
         }
 
-        public void CheckPhoneIsVerified()
+        public async Task<bool> CheckPhoneIsVerified()
         {
-            throw new Exception("figure out how to check the status of phone verified claim");
+            var user = await this.Services.UsersClient.GetUserAsync(this.CurrentUser.Username);
+            return user.Claims.ContainsKey(JwtClaimTypes.PhoneNumberVerified) && bool.Parse(user.Claims[JwtClaimTypes.PhoneNumberVerified].ToString());
         }
     }
 }

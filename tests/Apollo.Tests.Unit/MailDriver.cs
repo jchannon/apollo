@@ -12,6 +12,7 @@ namespace Apollo.Tests.Unit
     using System.Threading.Tasks;
     using Apollo.Tests.Unit.Sdk;
     using Bogus.DataSets;
+    using IdentityModel;
     using Newtonsoft.Json;
 
     public class MailDriver : IdentityTestDriver
@@ -68,9 +69,10 @@ namespace Apollo.Tests.Unit
             return await this.Services.ApolloClient.PostAsJsonAsync("/emailVerification/confirmation", request);
         }
 
-        public Task WaitForEmailToBeVerified()
+        public async Task<bool> WaitForEmailToBeVerified()
         {
-            throw new Exception();
+            var user = await this.Services.UsersClient.GetUserAsync(this.CurrentUser.Username);
+            return user.Claims.ContainsKey(JwtClaimTypes.EmailVerified) && bool.Parse(user.Claims[JwtClaimTypes.EmailVerified].ToString());
         }
 
         private class MailHogMessage

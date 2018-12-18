@@ -44,8 +44,6 @@ namespace Apollo.Tests.Unit
 
         public ApolloIntegrationFixture Services { get; }
 
-        public string UserId { get; set; }
-
         public User CurrentUser { get; set; }
 
         protected HttpClient ApolloClient { get; }
@@ -67,7 +65,9 @@ namespace Apollo.Tests.Unit
                 this.CurrentUser.PhoneNumber = phoneNumber;
             }
 
-            await this.Services.UsersClient.AddUserAsync(this.CurrentUser);
+            var newuser = await this.Services.UsersClient.AddUserAsync(this.CurrentUser);
+            this.CurrentUser.Id = newuser.Id;
+            
         }
 
         public async Task Login()
@@ -88,15 +88,6 @@ namespace Apollo.Tests.Unit
             authorizeResponse.IsError.Should().BeFalse();
             this.Services.ApolloClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authorizeResponse.AccessToken);
 
-            var handler = new JwtSecurityTokenHandler();
-            if (!handler.CanReadToken(authorizeResponse.AccessToken))
-            {
-                throw new InvalidOperationException("Unable to read JWT token after logging into Ironclad");
-            }
-
-            var token = handler.ReadJwtToken(authorizeResponse.AccessToken);
-
-            this.UserId = token.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
         }
     }
 }

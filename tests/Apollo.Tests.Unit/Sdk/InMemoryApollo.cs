@@ -22,15 +22,21 @@ namespace Apollo.Tests.Unit.Sdk
 
         private readonly string identityAuthority;
 
+        private readonly string clientId;
+
+        private readonly string secret;
+
         private TestServer testServer;
 
         private AzureInMemoryRepository azureInMemoryRepository;
 
-        public InMemoryApollo(string smtphost, string smtpport, string identityAuthority)
+        public InMemoryApollo(string smtphost, string smtpport, string identityAuthority, string clientId, string secret)
         {
             this.smtphost = smtphost;
             this.smtpport = smtpport;
             this.identityAuthority = identityAuthority;
+            this.clientId = clientId;
+            this.secret = secret;
         }
 
         public HttpClient HttpClient { get; private set; }
@@ -40,8 +46,8 @@ namespace Apollo.Tests.Unit.Sdk
             Environment.SetEnvironmentVariable("SMTP__host", this.smtphost);
             Environment.SetEnvironmentVariable("SMTP__port", this.smtpport);
             Environment.SetEnvironmentVariable("IdentityServer__Authority", this.identityAuthority);
-
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+            Environment.SetEnvironmentVariable("IroncladClient__ClientId", this.clientId);
+            Environment.SetEnvironmentVariable("IroncladClient__ClientSecret", this.secret);
 
             this.azureInMemoryRepository = new AzureInMemoryRepository();
 

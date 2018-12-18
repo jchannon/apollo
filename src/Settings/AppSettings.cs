@@ -12,5 +12,7 @@ namespace Apollo.Settings
         public SmtpSettings Smtp { get; set; }
 
         public TwilioSettings Twilio { get; set; }
+
+        public IroncladClientSettings IroncladClient { get; set; }
     }
 }

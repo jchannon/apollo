@@ -22,10 +22,10 @@ namespace Apollo
                 .UseContentRoot(Path.GetDirectoryName(typeof(Program).Assembly.Location))
                 .UseSerilog((context, configuration) =>
                     configuration.WriteTo.Console(outputTemplate: "[{InstanceId}] [{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                    .Enrich.FromLogContext()
-                    .Enrich.WithMachineName()
-                    .ReadFrom.Configuration(context.Configuration))
+                        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                        .Enrich.FromLogContext()
+                        .Enrich.WithMachineName()
+                        .ReadFrom.Configuration(context.Configuration))
                 .Build();
 
             try

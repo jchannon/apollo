@@ -24,10 +24,7 @@ namespace Apollo.Tests.Unit
         [Scenario]
         public void Verifying_a_phone_number(HttpResponseMessage smsResponse, string code, HttpResponseMessage submissionResponse)
         {
-            "Given I have a user with a verified email and unverified phone number".x(async () =>
-            {
-                await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false);
-            });
+            "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });
 
             "And I can login as the user".x(async () => { await this.smsDriver.Login(); });
 
@@ -73,7 +70,8 @@ namespace Apollo.Tests.Unit
         }
 
         [Scenario]
-        public void Providing_correct_code_after_three_incorrect_attempts(string validCode, HttpResponseMessage verificationRequestResponse, string invalidCode, HttpResponseMessage verificationSubmissionResponse)
+        public void Providing_correct_code_after_three_incorrect_attempts(string validCode, HttpResponseMessage verificationRequestResponse, string invalidCode,
+            HttpResponseMessage verificationSubmissionResponse)
         {
             "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });
 

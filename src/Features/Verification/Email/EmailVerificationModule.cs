@@ -7,6 +7,7 @@ namespace Apollo.Features.Verification.Email
     using Carter;
     using Carter.ModelBinding;
     using Carter.Response;
+    using IdentityModel;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
 
@@ -16,14 +17,17 @@ namespace Apollo.Features.Verification.Email
 
         private readonly ILogger<EmailVerificationModule> logger;
 
+        private readonly IroncladClaimUpdater ironcladClaimUpdater;
+
         private readonly VerificationCodeManager verificationCodeManager;
 
-        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender, ILogger<EmailVerificationModule> logger)
+        public EmailVerificationModule(VerificationCodeManager verificationCodeManager, MailSender sender, ILogger<EmailVerificationModule> logger, IroncladClaimUpdater ironcladClaimUpdater)
             : base("/emailverification")
         {
             this.verificationCodeManager = verificationCodeManager;
             this.sender = sender;
             this.logger = logger;
+            this.ironcladClaimUpdater = ironcladClaimUpdater;
 
             this.RequiresAuthentication();
 
@@ -44,17 +48,15 @@ namespace Apollo.Features.Verification.Email
                 return;
             }
 
-            var generatedSuccessfully = await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, async code =>
-            {
-                await this.sender.SendConfirmationCode(context.User.GetEmail(), code);
-            });
+            var generatedSuccessfully =
+                await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, async code => { await this.sender.SendConfirmationCode(context.User.GetEmail(), code); });
 
             context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
         }
 
         private async Task ConfirmVerificationCode(HttpContext context)
         {
-            var(validationResult, data) = context.Request.BindAndValidate<EmailConfirmationCodeModel>();
+            var (validationResult, data) = context.Request.BindAndValidate<EmailConfirmationCodeModel>();
 
             if (!validationResult.IsValid)
             {
@@ -67,6 +69,11 @@ namespace Apollo.Features.Verification.Email
             var userId = context.User.GetUserId();
 
             var success = await this.verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(data.Code));
+
+            if (success)
+            {
+                success = await this.ironcladClaimUpdater.UpdateIronclad(userId, JwtClaimTypes.EmailVerified, true);
+            }
 
             context.Response.StatusCode = success ? 204 : 400;
         }

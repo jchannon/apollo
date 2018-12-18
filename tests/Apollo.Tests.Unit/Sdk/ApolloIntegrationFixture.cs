@@ -15,11 +15,26 @@ namespace Apollo.Tests.Unit.Sdk
         public const string ApolloEndpointUri = "http://localhost:5006/status";
 
         private readonly MailHogContainer mailhogContainer;
+
         private readonly IAsyncLifetime apolloInstance;
 
         public ApolloIntegrationFixture()
         {
             this.SmtpServerEndpoint = new Uri($"smtp://localhost:{PortManager.GetNextPort()}");
+
+            var secret = "apolloclient";
+            var clientId = "apollo_client";
+
+            this.IroncladClientForApollo = new Client
+            {
+                Id = clientId,
+                Name = "Apollo Client",
+                AllowedScopes = { "auth_api", "auth_api:write" },
+                AllowedGrantTypes = { "client_credentials" },
+                Enabled = true,
+                Secret = secret                
+            };
+
             this.SmtpServerHttpEndpoint = new Uri($"http://localhost:{PortManager.GetNextPort()}");
 
             this.mailhogContainer = new MailHogContainer(this.SmtpServerEndpoint, this.SmtpServerHttpEndpoint);
@@ -34,7 +49,7 @@ namespace Apollo.Tests.Unit.Sdk
             }
             else
             {
-                this.apolloInstance = new InMemoryApollo(this.SmtpServerEndpoint.Host, this.SmtpServerEndpoint.Port.ToString(), this.Authority);
+                this.apolloInstance = new InMemoryApollo(this.SmtpServerEndpoint.Host, this.SmtpServerEndpoint.Port.ToString(), this.Authority, clientId, secret);
             }
         }
 
@@ -63,7 +78,10 @@ namespace Apollo.Tests.Unit.Sdk
             AllowedGrantTypes = { "implicit" },
             RequireConsent = false,
             Enabled = true,
+            AccessTokenType = "Reference"
         };
+
+        public Client IroncladClientForApollo { get; }
 
         public Uri SmtpServerEndpoint { get; }
 
@@ -79,6 +97,7 @@ namespace Apollo.Tests.Unit.Sdk
 
             await this.ApiResourcesClient.AddApiResourceAsync(this.ApiResource);
             await this.ClientsClient.AddClientAsync(this.Client);
+            await this.ClientsClient.AddClientAsync(this.IroncladClientForApollo);
 
             await this.mailhogContainer.InitializeAsync().ConfigureAwait(false);
             await this.apolloInstance.InitializeAsync().ConfigureAwait(false);
