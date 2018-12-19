@@ -44,14 +44,16 @@ namespace Apollo.Features.Verification.Email
             {
                 this.logger.LogInformation("User {userId} tried to verify their email when it's already verified", userId);
 
-                context.Response.StatusCode = 400;
+                context.Response.StatusCode = 204;
                 return;
             }
 
-            var generatedSuccessfully =
-                await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, async code => { await this.sender.SendConfirmationCode(context.User.GetEmail(), code); });
+            await this.verificationCodeManager.GenerateCode(VerificationType.Email, userId, async code =>
+            {
+                await this.sender.SendConfirmationCode(context.User.GetEmail(), code);
+            });
 
-            context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
+            context.Response.StatusCode = 202;
         }
 
         private async Task ConfirmVerificationCode(HttpContext context)
@@ -62,20 +64,17 @@ namespace Apollo.Features.Verification.Email
             {
                 this.logger.LogInformation("User sent an invalid payload ({validationResult}) when trying to verify the code", validationResult);
                 context.Response.StatusCode = 422;
-                await context.Response.Negotiate(validationResult.GetFormattedErrors());
+                await context.Response.WriteProblemDetails(new ValidationProblemDetails(validationResult));
                 return;
             }
 
             var userId = context.User.GetUserId();
 
-            var success = await this.verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(data.Code));
+            await this.verificationCodeManager.VerifyCode(VerificationType.Email, userId, new VerificationCode(data.Code));
 
-            if (success)
-            {
-                success = await this.ironcladClaimUpdater.UpdateIronclad(userId, JwtClaimTypes.EmailVerified, true);
-            }
+            await this.ironcladClaimUpdater.UpdateIronclad(userId, JwtClaimTypes.EmailVerified, true);
 
-            context.Response.StatusCode = success ? 204 : 400;
+            context.Response.StatusCode = 204;
         }
     }
 }

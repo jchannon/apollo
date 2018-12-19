@@ -67,7 +67,6 @@ namespace Apollo.Tests.Unit
 
             var newuser = await this.Services.UsersClient.AddUserAsync(this.CurrentUser);
             this.CurrentUser.Id = newuser.Id;
-            
         }
 
         public async Task Login()
@@ -87,7 +86,6 @@ namespace Apollo.Tests.Unit
 
             authorizeResponse.IsError.Should().BeFalse();
             this.Services.ApolloClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authorizeResponse.AccessToken);
-
         }
     }
 }

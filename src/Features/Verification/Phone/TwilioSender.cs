@@ -36,7 +36,7 @@ namespace Apollo.Features.Verification.Phone
                 this.logger.LogWarning("User tried to use an invalid phone number ({phoneNumber}) to receive a confirmation code", phoneNumber);
 
                 // https://www.twilio.com/docs/iam/test-credentials#test-sms-messages-parameters-To
-                throw new SenderException("Error sending SMS message", e);
+                throw;
             }
             catch (Exception e)
             {

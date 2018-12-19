@@ -56,22 +56,19 @@ namespace Apollo.Tests.Unit
 
             "And I submit the invalid confirmation code to be verified".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode); });
 
-            "Then the confirmation response is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest)); // todo problem+json parsing KYC-36
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And I submit the invalid confirmation code to be verified a second time".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode); });
 
-            "Then the confirmation response is rejected".x(() =>
-                verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest)); // todo problem+json parsing
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And I submit the invalid confirmation code to be verified a third time".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode); });
 
-            "Then the confirmation response is rejected with a different error".x(() =>
-                verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest)); // todo problem+json parsing
+            "Then the code is rejected for max attempts".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/maximum-verification-attempts-reached"));
         }
 
         [Scenario]
-        public void Providing_correct_code_after_three_incorrect_attempts(string validCode, HttpResponseMessage verificationRequestResponse, string invalidCode,
-            HttpResponseMessage verificationSubmissionResponse)
+        public void Providing_correct_code_after_three_incorrect_attempts(string validCode, HttpResponseMessage verificationRequestResponse, string invalidCode, HttpResponseMessage verificationSubmissionResponse)
         {
             "Given I have a user with a verified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(emailVerified: true, phoneVerified: false); });
 
@@ -87,19 +84,19 @@ namespace Apollo.Tests.Unit
 
             "And I send the invalid code".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And When I submit the invalid code again".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And When I submit the invalid code a third time".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for max attempts".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/maximum-verification-attempts-reached"));
 
             "And when I submit the valid code".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(validCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for max attempts".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/maximum-verification-attempts-reached"));
         }
 
         [Scenario]
@@ -113,12 +110,7 @@ namespace Apollo.Tests.Unit
 
             "When I submit the confirmation code to be verified".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode); });
 
-            "Then the code is rejected".x(() =>
-            {
-                verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-
-                // todo assert body contains correct problem+json info
-            });
+            "Then the code is rejected because the request is missing".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-request-missing"));
         }
 
         [Scenario]
@@ -142,15 +134,15 @@ namespace Apollo.Tests.Unit
 
             "And I send the invalid code".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And When I submit the invalid code again".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And When I submit the invalid code a third time".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for max attempts".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/maximum-verification-attempts-reached"));
 
             "When I request a new code to be sent via SMS to verify my phone number".x(async () => { verificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
 
@@ -186,15 +178,15 @@ namespace Apollo.Tests.Unit
 
             "And I send the invalid code".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And When I submit the invalid code again".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
 
             "And When I submit the invalid code a third time".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(invalidCode));
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for max attempts".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/maximum-verification-attempts-reached"));
 
             "When I request a new verification code for my phone number".x(async () => { verificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
 
@@ -204,7 +196,7 @@ namespace Apollo.Tests.Unit
 
             "And I submit the old code to be verified".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(oldCode); });
 
-            "Then the code is rejected".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the code is rejected for mismatched codes".x(async () => await verificationSubmissionResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-code-mismatch"));
         }
 
         [Scenario]
@@ -226,25 +218,13 @@ namespace Apollo.Tests.Unit
 
             "And I try to request a new verificaiton code".x(async () => { invalidVerificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
 
-            "Then the request is rejected".x(() => invalidVerificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the request is rejected for too many requests open".x(async () => await invalidVerificationRequestResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-already-started"));
 
             "And I can submit the original code".x(async () => verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(code));
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
             "Then my email verification status is true in Ironclad".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
-        }
-
-        [Scenario]
-        public void Veryifying_phone_number_without_verified_email(HttpResponseMessage unverifiedResponse)
-        {
-            "Given I have a user with an unverified email and unverified phone number".x(async () => { await this.smsDriver.RegisterUser(); });
-
-            "And I can login as the user".x(async () => { await this.smsDriver.Login(); });
-
-            "When I request a code to be sent via SMS to verify my phone number".x(async () => { unverifiedResponse = await this.smsDriver.RequestSMSCode(); });
-
-            "Then my phone number is not verified".x(() => { unverifiedResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest); });
         }
 
         [Scenario]
@@ -256,7 +236,7 @@ namespace Apollo.Tests.Unit
 
             "When I request a code to be sent via SMS to verify my phone number".x(async () => { verificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
 
-            "Then the request is rejected".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest));
+            "Then the request is rejected".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
         }
     }
 }

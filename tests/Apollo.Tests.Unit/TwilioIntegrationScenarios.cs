@@ -37,7 +37,7 @@ namespace Apollo.Tests.Unit
 
             "When I Request an SMS Code".x(async () => { responseMessage = await this.driver.RequestSMSCode(); });
 
-            "Then I get a invalid response code".x(() => { responseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest); });
+            "Then I get a invalid response code".x(() => { responseMessage.StatusCode.Should().Be(HttpStatusCode.InternalServerError); });
         }
     }
 }

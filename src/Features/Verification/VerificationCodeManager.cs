@@ -20,48 +20,45 @@ namespace Apollo.Features.Verification
             this.logger = logger;
         }
 
-        public async Task<bool> GenerateCode(VerificationType type, string userId, Func<VerificationCode, Task> onSuccessfulGeneration)
+        public async Task GenerateCode(VerificationType type, string userId, Func<VerificationCode, Task> onSuccessfulGeneration)
         {
             var outstandingRequest = await this.verificationRequestRepository.GetVerificationRequest(type, userId);
             if (outstandingRequest != null && outstandingRequest.IsActive())
             {
                 this.logger.LogInformation("User {userId} tried to request an active code when one was already available", userId);
-                return false;
+                throw new VerificationAlreadyStarted();
             }
 
             var verificationRequest = VerificationRequest.GenerateNewVerificationRequest(userId, type, VerificationCode.Generate());
 
             await this.verificationRequestRepository.StoreNewVerificationRequest(verificationRequest); // todo config the time KYC-43
 
-            try
-            {
-                await onSuccessfulGeneration(verificationRequest.Code);
-            }
-            catch (SenderException)
-            {
-                this.logger.LogWarning("Failed to dispatch verification code to user");
-                return false;
-            }
-
-            return true;
+            await onSuccessfulGeneration(verificationRequest.Code);
         }
 
-        public async Task<bool> VerifyCode(VerificationType type, string userId, VerificationCode code)
+        public async Task VerifyCode(VerificationType type, string userId, VerificationCode code)
         {
             var storedCodeRequest = await this.verificationRequestRepository.GetVerificationRequest(type, userId);
 
             if (storedCodeRequest == null)
             {
                 this.logger.LogWarning("User ({userId}) tried to verify a code that hasn't been requested", userId);
-                return false;
+                throw new VerificationRequestMissing();
             }
 
             var validatedRequest = storedCodeRequest.ValidateCode(code);
 
             await this.verificationRequestRepository.UpdateAttemptedRequest(validatedRequest);
 
-            // todo problem+json stuff KYC-36
-            return validatedRequest.Status == VerificationRequestStatus.Confirmed;
+            switch (validatedRequest.Status)
+            {
+                case VerificationRequestStatus.Pending:
+                    throw new VerificationCodeMismatch();
+                case VerificationRequestStatus.Expired:
+                    throw new VerificationCodeHasExpired();
+                case VerificationRequestStatus.Failed:
+                    throw new MaximumVerificationAttemptsReached();
+            }
         }
     }
 }

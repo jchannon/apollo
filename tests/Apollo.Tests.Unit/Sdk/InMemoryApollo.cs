@@ -48,7 +48,7 @@ namespace Apollo.Tests.Unit.Sdk
             Environment.SetEnvironmentVariable("IdentityServer__Authority", this.identityAuthority);
             Environment.SetEnvironmentVariable("IroncladClient__ClientId", this.clientId);
             Environment.SetEnvironmentVariable("IroncladClient__ClientSecret", this.secret);
-
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
             this.azureInMemoryRepository = new AzureInMemoryRepository();
 
             var builder = new WebHostBuilder()

@@ -44,16 +44,18 @@ namespace Apollo
             services.AddHttpClient(Constants.IroncladClient, client => { client.BaseAddress = new Uri(this.appSettings.IdentityServer.Authority); });
 
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
-                .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme, options =>
+                .AddIdentityServerAuthentication(
+                    IdentityServerAuthenticationDefaults.AuthenticationScheme,
+                    options =>
                 {
                     options.Authority = this.appSettings.IdentityServer.Authority;
                     options.Audience = this.appSettings.IdentityServer.Authority + "/resources";
                     options.RequireHttpsMetadata = false;
-                }, moreoptions =>
+                },
+                 moreoptions =>
                 {
                     moreoptions.Authority = this.appSettings.IdentityServer.Authority;
-                    moreoptions.DiscoveryPolicy = new DiscoveryPolicy
-                        { ValidateIssuerName = false };
+                    moreoptions.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
                     moreoptions.ClientId = this.appSettings.IdentityServer.ApiName;
                     moreoptions.ClientSecret = this.appSettings.IdentityServer.ApiSecret;
 
@@ -63,10 +65,42 @@ namespace Apollo
                 });
 
             services.AddCarter();
+
+            services.AddProblemDetails(opts =>
+            {
+                opts.Map<VerificationCodeMismatch>(ex => new ProblemDetails
+                {
+                    Title = "The confirmation code is invalid",
+                    Status = 400,
+                    Type = "/verification-code-mismatch"
+                });
+
+                opts.Map<MaximumVerificationAttemptsReached>(ex => new ProblemDetails
+                {
+                    Title = "The confirmation code has been submitted too many times",
+                    Status = 400,
+                    Type = "/maximum-verification-attempts-reached"
+                });
+
+                opts.Map<VerificationRequestMissing>(ex => new ProblemDetails
+                {
+                    Title = "There is no verification request for the user",
+                    Status = 400,
+                    Type = "/verification-request-missing"
+                });
+
+                opts.Map<VerificationAlreadyStarted>(ex => new ProblemDetails
+                {
+                    Title = "There is already outstanding verification request",
+                    Status = 400,
+                    Type = "/verification-already-started"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseMiddleware<ProblemDetailsMiddleware>();
             app.UseAuthentication();
             app.UseCarter();
         }

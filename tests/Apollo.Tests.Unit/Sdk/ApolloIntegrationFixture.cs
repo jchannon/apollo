@@ -32,7 +32,7 @@ namespace Apollo.Tests.Unit.Sdk
                 AllowedScopes = { "auth_api", "auth_api:write" },
                 AllowedGrantTypes = { "client_credentials" },
                 Enabled = true,
-                Secret = secret                
+                Secret = secret
             };
 
             this.SmtpServerHttpEndpoint = new Uri($"http://localhost:{PortManager.GetNextPort()}");

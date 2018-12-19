@@ -56,7 +56,7 @@ namespace Apollo.Tests.Unit
         {
             Assert.False(VerificationCode.IsWellformed(value));
         }
-        
+
         [Theory]
         [InlineData("0000")]
         [InlineData("1234")]

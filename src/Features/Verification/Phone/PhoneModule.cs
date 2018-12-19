@@ -3,7 +3,6 @@
 
 namespace Apollo.Features.Verification.Phone
 {
-    using System.Security.Claims;
     using System.Threading.Tasks;
     using Carter;
     using Carter.ModelBinding;
@@ -39,30 +38,22 @@ namespace Apollo.Features.Verification.Phone
         {
             var userId = context.User.GetUserId();
 
-            if (!context.User.IsEmailVerified())
-            {
-                this.logger.LogInformation("User {userId} tried to verify their phone number without verifying their email", userId);
-
-                context.Response.StatusCode = 400;
-                return;
-            }
-
             if (context.User.IsUserPhoneVerified())
             {
                 this.logger.LogInformation("User {userId} tried to verify their phone number when it's already verified", userId);
 
-                context.Response.StatusCode = 400;
+                context.Response.StatusCode = 204;
                 return;
             }
 
-            var generatedSuccessfully = await this.verificationCodeManager.GenerateCode(VerificationType.SMS, userId, code =>
+            await this.verificationCodeManager.GenerateCode(VerificationType.SMS, userId, code =>
             {
                 this.twilioSender.Send(context.User.GetUserPhoneNumber(), code);
 
                 return Task.CompletedTask;
             });
 
-            context.Response.StatusCode = generatedSuccessfully ? 202 : 400;
+            context.Response.StatusCode = 202;
         }
 
         private async Task ConfirmSmsConfirmationCode(HttpContext context)
@@ -74,18 +65,16 @@ namespace Apollo.Features.Verification.Phone
                 this.logger.LogInformation("User sent an invalid payload ({validationResult}) when trying to verify the code", validationResult);
 
                 context.Response.StatusCode = 422;
+                await context.Response.WriteProblemDetails(new ValidationProblemDetails(validationResult));
             }
 
             var userId = context.User.GetUserId();
 
-            var success = await this.verificationCodeManager.VerifyCode(VerificationType.SMS, userId, new VerificationCode(data.Code));
+            await this.verificationCodeManager.VerifyCode(VerificationType.SMS, userId, new VerificationCode(data.Code));
 
-            if (success)
-            {
-                success = await this.ironcladClaimUpdater.UpdateIronclad(userId, JwtClaimTypes.PhoneNumberVerified, true);
-            }
+            await this.ironcladClaimUpdater.UpdateIronclad(userId, JwtClaimTypes.PhoneNumberVerified, true);
 
-            context.Response.StatusCode = success ? 204 : 400;
+            context.Response.StatusCode = 204;
         }
     }
 }
