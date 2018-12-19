@@ -38,7 +38,7 @@ namespace Apollo.Tests.Unit
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
-            "Then my email verification status is true in Ironclad".x(async () => { await this.driver.WaitForEmailToBeVerified(); });
+            "Then my email verification status is true in Ironclad".x(async () => { (await this.driver.WaitForEmailToBeVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
@@ -170,7 +170,7 @@ namespace Apollo.Tests.Unit
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
-            "Then my email verification status is true in Ironclad".x(async () => { await this.driver.WaitForEmailToBeVerified(); });
+            "Then my email verification status is true in Ironclad".x(async () => { (await this.driver.WaitForEmailToBeVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
@@ -236,7 +236,7 @@ namespace Apollo.Tests.Unit
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
-            "Then my email verification status is true in Ironclad".x(async () => { await this.driver.WaitForEmailToBeVerified(); });
+            "Then my email verification status is true in Ironclad".x(async () => { (await this.driver.WaitForEmailToBeVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
