@@ -78,7 +78,7 @@ namespace Apollo.Tests.Unit
 
             "And the request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
-            "And I wait for the email confirmation code".x(async () => { validCode = await this.smsDriver.WaitForSMS(); });
+            "Then I receive an SMS with the verification code in".x(async () => { validCode = await this.smsDriver.WaitForSMS(); });
 
             "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
 
@@ -128,7 +128,7 @@ namespace Apollo.Tests.Unit
 
             "And the request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
-            "And I wait for the email confirmation code".x(async () => { await this.smsDriver.WaitForSMS(); });
+            "Then I receive an SMS with the verification code in".x(async () => { await this.smsDriver.WaitForSMS(); });
 
             "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
 
@@ -148,13 +148,13 @@ namespace Apollo.Tests.Unit
 
             "The request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
-            "And I wait for the email confirmation code".x(async () => { newCode = await this.smsDriver.WaitForSMS(); });
+            "Then I receive an SMS with the verification code in".x(async () => { newCode = await this.smsDriver.WaitForSMS(); });
 
             "And I submit the confirmation code to be verified".x(async () => { verificationSubmissionResponse = await this.smsDriver.SubmitVerificationCode(newCode); });
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
-            "Then my email verification status is true in Ironclad".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
+            "Then my phone verification status is true in Ironclad".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
@@ -168,11 +168,11 @@ namespace Apollo.Tests.Unit
 
             "And I can login as the user".x(async () => { await this.smsDriver.Login(); });
 
-            "When I request to verify my email address".x(async () => { verificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
+            "When I request a code to be sent via SMS to verify my phone number".x(async () => { verificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
 
             "And the request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
-            "And I wait for the email confirmation code".x(async () => { oldCode = await this.smsDriver.WaitForSMS(); });
+            "Then I receive an SMS with the verification code in".x(async () => { oldCode = await this.smsDriver.WaitForSMS(); });
 
             "And I have an invalid code".x(() => { invalidCode = VerificationCode.Generate().ToString(); });
 
@@ -214,9 +214,9 @@ namespace Apollo.Tests.Unit
 
             "And the request is accepted".x(() => verificationRequestResponse.StatusCode.Should().Be(HttpStatusCode.Accepted));
 
-            "And I wait for the email confirmation code".x(async () => { code = await this.smsDriver.WaitForSMS(); });
+            "And I wait for the SMS confirmation code".x(async () => { code = await this.smsDriver.WaitForSMS(); });
 
-            "And I try to request a new verificaiton code".x(async () => { invalidVerificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
+            "And I try to request a new verification code".x(async () => { invalidVerificationRequestResponse = await this.smsDriver.RequestSMSCode(); });
 
             "Then the request is rejected for too many requests open".x(async () => await invalidVerificationRequestResponse.ShouldBeRejectedWithMatchingTypeField("http://localhost/.problem/verification-already-started"));
 
@@ -224,7 +224,7 @@ namespace Apollo.Tests.Unit
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
-            "Then my email verification status is true in Ironclad".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
+            "Then my phone verification status is true in Ironclad".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
