@@ -38,7 +38,7 @@ namespace Apollo.Tests.Unit
 
             "And the code is accepted".x(() => { submissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent); });
 
-            "Then my phone number is verified".x(() => { this.smsDriver.CheckPhoneIsVerified(); });
+            "Then my phone number is verified".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
@@ -162,7 +162,7 @@ namespace Apollo.Tests.Unit
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
-            "Then my email verification status is true in Ironclad".x(() => { this.smsDriver.CheckPhoneIsVerified(); });
+            "Then my email verification status is true in Ironclad".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
@@ -232,7 +232,7 @@ namespace Apollo.Tests.Unit
 
             "And the code is accepted".x(() => verificationSubmissionResponse.StatusCode.Should().Be(HttpStatusCode.NoContent));
 
-            "Then my email verification status is true in Ironclad".x(() => { this.smsDriver.CheckPhoneIsVerified(); });
+            "Then my email verification status is true in Ironclad".x(async () => { (await this.smsDriver.CheckPhoneIsVerified()).Should().BeTrue(); });
         }
 
         [Scenario]
