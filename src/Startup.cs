@@ -95,6 +95,13 @@ namespace Apollo
                     Status = 400,
                     Type = "/verification-already-started"
                 });
+
+                opts.Map<VerificationCodeHasExpired>(ex => new ProblemDetails
+                {
+                    Title = "The verification code has expired",
+                    Status = 400,
+                    Type = "/verification-code-has-expired"
+                });
             });
         }
 
