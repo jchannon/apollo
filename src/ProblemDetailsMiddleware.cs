@@ -7,6 +7,7 @@ namespace Apollo
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
 
     public class ProblemDetailsMiddleware
     {
@@ -16,14 +17,18 @@ namespace Apollo
 
         private readonly IHostingEnvironment environment;
 
+        private readonly ILogger logger;
+
         public ProblemDetailsMiddleware(
             RequestDelegate next,
             ProblemDetailsOptions options,
-            IHostingEnvironment environment)
+            IHostingEnvironment environment,
+            ILoggerFactory loggerFactory)
         {
             this.next = next;
             this.options = options;
             this.environment = environment;
+            this.logger = loggerFactory.CreateLogger<ProblemDetailsMiddleware>();
         }
 
         public async Task Invoke(HttpContext context)
@@ -66,6 +71,8 @@ namespace Apollo
                 }
                 else
                 {
+                    this.logger.LogError(ex, "Unhandled exception");
+                    context.Response.StatusCode = 500;
                     throw;
                 }
             }

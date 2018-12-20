@@ -22,6 +22,7 @@ namespace Apollo
                 .UseContentRoot(Path.GetDirectoryName(typeof(Program).Assembly.Location))
                 .UseSerilog((context, configuration) =>
                     configuration.WriteTo.Console(outputTemplate: "[{InstanceId}] [{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                        .WriteTo.ApplicationInsightsTraces(context.Configuration.GetValue<string>("AppInsightsKey"))
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                         .Enrich.FromLogContext()
                         .Enrich.WithMachineName()
